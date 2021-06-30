@@ -1,18 +1,17 @@
 import { useState } from "react";
-const DUMMY_DATA = [
-  { id: 1, name: "Đào Hữu Đức", phone: "0703431760", debt: 200000 },
-  { id: 2, name: "Trần Văn A", phone: "0913431760", debt: 550000 },
-  { id: 3, name: "Nguyễn Nhật Huy", phone: "0984131760", debt: 800000 },
-];
+import { randomString, UpdateDataToFireStore } from "../../action/Action";
 
-const ManageMember = () => {
-  const [arrayValue, setArrayValue] = useState(DUMMY_DATA);
-  const [idKey, setIdKey] = useState(arrayValue.length);
+import "./ManageMember.css";
+
+const ManageMember = (props) => {
+  const [backupArray, setBackupArray] = useState(props.data);
+  const [arrayValue, setArrayValue] = useState(props.data);
   const [{ inputName, inputPhone }, setInputValue] = useState({
     inputName: "",
     inputPhone: "",
   });
   const [notification, setNotification] = useState("");
+  const [arrayIsChange, setArrayIsChange] = useState(false);
 
   const changeValueHandler = (event) => {
     const target = event.target.name.split(" ");
@@ -37,7 +36,6 @@ const ManageMember = () => {
       prevValue.splice(selectedIndex, 1);
       return [...prevValue];
     });
-    setIdKey((prevValue) => prevValue - 1);
   };
 
   const inputValueHandler = (event) => {
@@ -53,9 +51,8 @@ const ManageMember = () => {
     if (inputName.length === 0 || inputPhone.length === 0) {
       setNotification("Name and phone must not be empty");
     } else {
-      setIdKey((prevValue) => prevValue + 1);
       const newUser = {
-        id: idKey + 1,
+        id: randomString(15),
         name: inputName,
         phone: inputPhone,
         debt: 0,
@@ -64,12 +61,27 @@ const ManageMember = () => {
         return [...prevValue, newUser];
       });
       setInputValue({ inputName: "", inputPhone: "" });
+      setArrayIsChange(true);
+    }
+  };
+
+  const resetDataHandler = () => {
+    setArrayValue([...backupArray]);
+    setArrayIsChange(false);
+  };
+
+  const saveDataHandler = () => {
+    if (arrayIsChange) {
+      setBackupArray(arrayValue);
+      arrayValue.map((el) => {
+        return UpdateDataToFireStore("Users", el, el.id);
+      });
     }
   };
 
   return (
     <div className="">
-      <div className="mt-12 lg:mt-16 border-b w-5/12 text-2xl font-semibold mb-8 sm:w-4/12 sm:text-3xl md:text-3xl md:4/12 lg:text-4xl lg:mx-16 lg:w-3/12 2xl:w-2/12">
+      <div className="mt-12 lg:mt-16 text-center w-full text-2xl font-semibold mb-8 sm:text-4xl md:w-3/12 md:border-b md:text-left md:text-3xl md:4/12 lg:text-4xl lg:mx-16 lg:w-3/12 2xl:w-2/12">
         <h1>List member</h1>
       </div>
       <table className="table-fixed border-collapse text-center lg:mx-16">
@@ -135,7 +147,7 @@ const ManageMember = () => {
                 rows="1"
                 name="inputName"
                 className="placeholder-gray-500 text-center w-full"
-                placeholder="Name"
+                placeholder="Name (required)"
                 value={inputName}
                 onChange={inputValueHandler}
               />
@@ -144,7 +156,7 @@ const ManageMember = () => {
               <input
                 name="inputPhone"
                 className="placeholder-gray-500 text-center w-full"
-                placeholder="Phone"
+                placeholder="Phone (required)"
                 value={inputPhone}
                 onChange={inputValueHandler}
               />
@@ -165,22 +177,35 @@ const ManageMember = () => {
       </table>
       {notification && (
         <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative "
+          className="mt-2 mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative md:py-5 md:text-lg"
           role="alert"
         >
-          <span class="absolute inset-y-0 left-0 flex items-center ml-4">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+          <span className="absolute inset-y-0 left-0 flex items-center ml-4">
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
               <path
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clip-rule="evenodd"
-                fill-rule="evenodd"
+                clipRule="evenodd"
+                fillRule="evenodd"
               ></path>
             </svg>
           </span>
-          <p class="ml-6">{notification}</p>
-          
+          <p className="ml-6 md:font-medium">{notification}</p>
         </div>
       )}
+      <div className="flex justify-end space-x-6 pr-4 sm:space-x-12 sm:pr-10 md:space-x-16 md:mt-8 lg:pr-14 xl:space-x-28 xl:mt-12">
+        <button
+          className="reset-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
+          onClick={resetDataHandler}
+        >
+          Reset
+        </button>
+        <button
+          className="save-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
+          onClick={saveDataHandler}
+        >
+          Save
+        </button>
+      </div>
     </div>
   );
 };
