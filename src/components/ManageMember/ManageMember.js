@@ -1,38 +1,50 @@
 import { useState } from "react";
-import { randomString, UpdateDataToFireStore } from "../../action/Action";
+import {
+  findDataFromFireStore,
+  randomString,
+  updateDataToFireStore,
+} from "../../action/Action";
+import { db } from "../../Firebase";
 
 import "./ManageMember.css";
 
 const ManageMember = (props) => {
-  const [backupArray, setBackupArray] = useState(props.data);
-  const [arrayValue, setArrayValue] = useState(props.data);
-  const [{ inputName, inputPhone }, setInputValue] = useState({
+  const [usersInfo, setUsersInfo] = useState([...props.usersInfo]);
+  const [listUser, setListUser] = useState([...props.listUser]);
+  const [backupArray, setBackupArray] = useState({
+    usersInfo: [...usersInfo],
+    listUser: [...listUser],
+  });
+  const [{ inputNickname, inputPhone }, setInputValue] = useState({
     inputName: "",
     inputPhone: "",
   });
   const [notification, setNotification] = useState("");
   const [arrayIsChange, setArrayIsChange] = useState(false);
 
-  const changeValueHandler = (event) => {
-    const target = event.target.name.split(" ");
-    const targetedName = target[0];
-    const targetedId = target[1];
+  const changeNickNameHandler = (event) => {
+    const targetedId = event.target.name;
     const targetedContent = event.target.value;
-    setArrayValue((prevValue) => {
-      const selectedIndex = prevValue.findIndex((el) => el.id == targetedId);
+    setListUser((prevValue) => {
+      const selectedIndex = prevValue.findIndex((el) => el.id === targetedId);
       const selectedObject = prevValue[selectedIndex];
       prevValue[selectedIndex] = {
         ...selectedObject,
-        [targetedName]: targetedContent,
+        nickname: targetedContent,
       };
       return [...prevValue];
     });
   };
 
-  const removeUserHandler = (event) => {
+  const removeUserHandler = async (event) => {
     const targetedId = event.target.name;
-    setArrayValue((prevValue) => {
-      const selectedIndex = prevValue.findIndex((el) => el.id == targetedId);
+    let selectedIndex = -1;
+    setListUser((prevValue) => {
+      selectedIndex = prevValue.findIndex((el) => el.id === targetedId);
+      prevValue.splice(selectedIndex, 1);
+      return [...prevValue];
+    });
+    setUsersInfo((prevValue) => {
       prevValue.splice(selectedIndex, 1);
       return [...prevValue];
     });
@@ -47,48 +59,68 @@ const ManageMember = (props) => {
     setNotification("");
   };
 
-  const addUserHandler = () => {
-    if (inputName.length === 0 || inputPhone.length === 0) {
+  const addUserHandler = async () => {
+    const checkUserIsExisted = usersInfo.find((el) => {
+      return el.phone === inputPhone;
+    });
+    if (inputNickname.length === 0 || inputPhone.length === 0) {
       setNotification("Name and phone must not be empty");
+    } else if (checkUserIsExisted >= 0) {
+      setNotification("This phone number is already added!");
+      setInputValue({ inputNickname: "", inputPhone: "" });
     } else {
-      const newUser = {
-        id: randomString(15),
-        name: inputName,
-        phone: inputPhone,
-        debt: 0,
-      };
-      setArrayValue((prevValue) => {
-        return [...prevValue, newUser];
-      });
-      setInputValue({ inputName: "", inputPhone: "" });
-      setArrayIsChange(true);
+      const user = await findDataFromFireStore(
+        "Users",
+        "phone",
+        "==",
+        inputPhone
+      );
+      if (user && user.length === 1) {
+        const newUserInList = {
+          id: randomString(15),
+          nickname: inputNickname,
+          userID: db.collection("Users").doc(user[0].userID),
+        };
+        setListUser((prevValue) => {
+          return [...prevValue, newUserInList];
+        });
+        setUsersInfo((prevValue) => {
+          return [...prevValue, ...user];
+        });
+        setInputValue({ inputNickname: "", inputPhone: "" });
+        setArrayIsChange(true);
+      } else {
+        setNotification("The phone number is not created!");
+      }
     }
   };
 
   const resetDataHandler = () => {
-    setArrayValue([...backupArray]);
+    setUsersInfo([...backupArray.usersInfo]);
+    setListUser([...backupArray.listUser]);
     setArrayIsChange(false);
   };
 
   const saveDataHandler = () => {
     if (arrayIsChange) {
-      setBackupArray(arrayValue);
-      arrayValue.map((el) => {
-        return UpdateDataToFireStore("Users", el, el.id);
+      console.log(listUser);
+      setBackupArray(usersInfo);
+      listUser.map((el) => {
+        return updateDataToFireStore("ListUser", el.id, el);
       });
     }
   };
 
   return (
-    <div className="">
-      <div className="mt-12 lg:mt-16 text-center w-full text-2xl font-semibold mb-8 sm:text-4xl md:w-3/12 md:border-b md:text-left md:text-3xl md:4/12 lg:text-4xl lg:mx-16 lg:w-3/12 2xl:w-2/12">
+    <div>
+      <div className="mt-12 lg:mt-16 text-center w-full text-2xl font-semibold mb-20 sm:text-4xl md:w-3/12 md:border-b md:text-left md:text-3xl md:4/12 lg:text-4xl lg:mx-16 lg:w-3/12 2xl:w-2/12">
         <h1>List member</h1>
       </div>
       <table className="table-fixed border-collapse text-center lg:mx-16">
         <thead>
           <tr>
             <th className="border-b border-black text-base w-screen pb-2 sm:text-lg sm:pb-4 md:pb-8 lg:pb-12 md:text-2xl lg:w-screen">
-              <div>Name</div>
+              <div>Nickname</div>
             </th>
             <th className="border-b border-black text-base w-screen pb-2 sm:text-lg  sm:pb-4 md:pb-8 lg:pb-12 md:text-2xl lg:w-screen">
               <div>Phone</div>
@@ -102,26 +134,27 @@ const ManageMember = (props) => {
           </tr>
         </thead>
         <tbody>
-          {arrayValue.map((el, index) => {
+          {usersInfo.map((el, index) => {
             return (
-              <tr key={el.id}>
+              <tr key={el.userID}>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl self-center py-2 lg:py-8">
                   <textarea
                     rows="1"
-                    onChange={changeValueHandler}
-                    name={`name ${el.id}`}
+                    onChange={changeNickNameHandler}
+                    name={listUser[index].id}
                     className="text-center w-full resize-y"
-                    value={arrayValue[index].name}
+                    value={listUser[index].nickname}
                   />
                 </td>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-8">
-                  <input
+                  {/* <input
                     onChange={changeValueHandler}
-                    id={el.id}
-                    name={`phone ${el.id}`}
+                    id={el.userID}
+                    name={`phone ${el.userID}`}
                     className="text-center w-full"
-                    value={arrayValue[index].phone}
-                  />
+                    value={usersInfo[index].phone}
+                  /> */}
+                  {el.phone}
                 </td>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-8">
                   {el.debt.toLocaleString("it-IT", {
@@ -131,7 +164,7 @@ const ManageMember = (props) => {
                 </td>
                 <td className="border-b border-black py-2 lg:py-4">
                   <img
-                    name={el.id}
+                    name={listUser[index].id}
                     className="mx-auto h-5 sm:h-8 md:h-10 m-4 cursor-pointer"
                     src="images/cancel.png"
                     alt="Workflow"
@@ -145,10 +178,10 @@ const ManageMember = (props) => {
             <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
               <textarea
                 rows="1"
-                name="inputName"
+                name="inputNickname"
                 className="placeholder-gray-500 text-center w-full"
-                placeholder="Name (required)"
-                value={inputName}
+                placeholder="Nickname (required)"
+                value={inputNickname}
                 onChange={inputValueHandler}
               />
             </td>

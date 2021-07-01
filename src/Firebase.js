@@ -3,7 +3,7 @@ require("firebase/firestore");
 require("firebase/auth");
 
 
-var firebaseConfig = {
+export var firebaseConfig = {
   apiKey: "AIzaSyAP8oTqvKeLh4C6ppwM3klUmd-sgOKredM",
   authDomain: "expenses-management-bab7f.firebaseapp.com",
   projectId: "expenses-management-bab7f",
