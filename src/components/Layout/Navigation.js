@@ -22,10 +22,10 @@ const Navigation = () => {
             Expenses Management
           </span>
         </div>
-        <div className="block flex-grow lg:flex lg:items-center w-3/12 md:mt-2 lg:mt-2">
+        <div className="block flex-grow lg:flex lg:items-center w-2/12  md:mt-2 lg:mt-2">
           <div className="text-sm lg:flex-grow ">
             <p
-              className="text-base cursor-pointer text-teal-200 hover:text-blue-400 mr-3 text-white sm:mr-4 md:ml-2 md:mr-0 lg:inline-block lg:mt-0 sm:text-lg sm:text-2xl md:text-xl lg:text-2xl"
+              className="text-base cursor-pointer text-teal-200 hover:text-blue-400 mr-3 text-white sm:mr-4 md:ml-. md:mr-0 lg:inline-block lg:mt-0 sm:text-lg sm:text-2xl md:text-xl lg:text-2xl"
               onClick={() => {}}
             >
               Manage member

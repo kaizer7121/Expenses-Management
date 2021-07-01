@@ -2,6 +2,14 @@ import { Fragment, useState } from "react";
 import firebase from "../../Firebase";
 
 import Swal from "sweetalert2";
+import {
+  findDataFromFireStore,
+  getSingleDataFromFireStore,
+  updateDataToFireStore,
+} from "../../action/Action";
+import { useDispatch } from "react-redux";
+import { authAction } from "../../store/authSlice";
+import { tokenAction } from "../../store/tokenSlice";
 
 let isRender = false;
 var downloadTimer;
@@ -11,6 +19,8 @@ const Login = () => {
   const [verificationCode, setVeriticationCode] = useState("");
   const [isSendCode, setIsSendCode] = useState(false);
   const [lockSend, setLockSend] = useState(false);
+
+  const dispatch = useDispatch();
 
   const setUpRecaptcha = () => {
     if (!isRender) {
@@ -28,7 +38,6 @@ const Login = () => {
     }
   };
 
-
   const sendCodeThroughSMS = () => {
     setLockSend(true);
     var timeleft = 30;
@@ -36,9 +45,6 @@ const Login = () => {
       if (timeleft <= 0) {
         setLockSend(false);
         clearInterval(downloadTimer);
-        console.log("End");
-      } else {
-        console.log(timeleft);
       }
       timeleft -= 1;
     }, 1000);
@@ -83,12 +89,43 @@ const Login = () => {
     const code = verificationCode;
     window.confirmationResult
       .confirm(code)
-      .then((result) => {
-        // User signed in successfully.
+      .then(async (result) => {
         const user = result.user;
-        console.log(user);
-        Swal.fire("Sign in successfully", "", "success");
-        // ...
+        const uid = user.uid;
+        const userData = await getSingleDataFromFireStore("Users", uid);
+        if (!userData) {
+          updateDataToFireStore(
+            "Users",
+            {
+              userID: uid,
+              phone: user.phoneNumber,
+              name: "",
+              debt: 0,
+              role: "User",
+            },
+            uid
+          );
+        } else {
+          const checkUserInList = await findDataFromFireStore(
+            "ListUser",
+            "userID",
+            "==",
+            uid
+          );
+          if (checkUserInList) {
+            const expirationTime = user.h.c;
+            const token = user.Aa;
+            dispatch(authAction.login(userData));
+            dispatch(tokenAction.addToken({ token, expirationTime }));
+            Swal.fire("Sign in successfully", " ", "success");
+          } else {
+            Swal.fire(
+              "Sorry",
+              "Your account don't have permission to login",
+              "warning"
+            );
+          }
+        }
       })
       .catch((error) => {
         // User couldn't sign in (bad verification code?)

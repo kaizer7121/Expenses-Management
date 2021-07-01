@@ -13,15 +13,30 @@ export const randomString = (length) => {
 
 export const getDataFromFireStore = async (collectionName) => {
   const data = [];
-  await db
-    .collection(collectionName)
-    .get()
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        data.push(doc.data());
-      });
-    });
+  const querySnapshot = await db.collection(collectionName).get();
 
+  querySnapshot.forEach((doc) => {
+    data.push(doc.data());
+  });
+
+  return data;
+};
+
+export const getSingleDataFromFireStore = async (
+  collectionName,
+  documentName
+) => {
+  const docRef = await db.collection(collectionName).doc(documentName).get();
+
+  let data;
+
+  if (docRef.exists) {
+    data = docRef.data();
+  } else {
+    console.log(
+      `ERROR WHEN GET SINGLE DATA, collection: ${collectionName} document: ${documentName} `
+    );
+  }
   return data;
 };
 
@@ -35,11 +50,32 @@ export const addDataToFireStore = (collectionName, data) => {
     });
 };
 
-export const UpdateDataToFireStore = (collectionName, data, documentName) => {
+export const updateDataToFireStore = (collectionName, documentName, data) => {
   db.collection(collectionName)
     .doc(documentName)
     .set(data, { merge: true })
     .catch((err) => {
       console.log(err);
     });
+};
+
+export const findDataFromFireStore = async (
+  collectionName,
+  property,
+  operation,
+  object
+) => {
+  const data = [];
+  try {
+    const querySnapshot = await db
+      .collection(collectionName)
+      .where(property, operation, object)
+      .get();
+    querySnapshot.forEach((doc) => {
+      data.push(doc.data());
+    });
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
 };
