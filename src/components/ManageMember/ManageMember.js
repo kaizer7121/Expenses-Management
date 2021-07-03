@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import {
   findDataFromFireStore,
   randomString,
@@ -16,11 +17,13 @@ const ManageMember = (props) => {
     listUser: [...listUser],
   });
   const [{ inputNickname, inputPhone }, setInputValue] = useState({
-    inputName: "",
+    inputNickname: "",
     inputPhone: "",
   });
   const [notification, setNotification] = useState("");
   const [arrayIsChange, setArrayIsChange] = useState(false);
+
+  const loginUserInfo = useSelector((state) => state.auth);
 
   const changeNickNameHandler = (event) => {
     const targetedId = event.target.name;
@@ -36,7 +39,7 @@ const ManageMember = (props) => {
     });
   };
 
-  const removeUserHandler = async (event) => {
+  const removeUserHandler = (event) => {
     const targetedId = event.target.name;
     let selectedIndex = -1;
     setListUser((prevValue) => {
@@ -59,13 +62,39 @@ const ManageMember = (props) => {
     setNotification("");
   };
 
+  const convertPhoneNumber = (phoneNum) => {
+    let convertedPhoneNumber = phoneNum;
+    if (convertedPhoneNumber.charAt(0) === "0") {
+      convertedPhoneNumber = convertedPhoneNumber.substring(1);
+    }
+    if (convertedPhoneNumber.includes("+840")) {
+      convertedPhoneNumber = convertedPhoneNumber.substring(4);
+    }
+    if (!convertedPhoneNumber.includes("+84", 0)) {
+      convertedPhoneNumber = `+84${convertedPhoneNumber}`;
+    }
+    console.log("convertedPhoneNumber: " + convertedPhoneNumber);
+    return convertedPhoneNumber;
+  };
+
+  const deconvertPhoneNumber = (convertedPhone) => {
+    let deconvertedPhoneNumber = convertedPhone;
+    if (deconvertedPhoneNumber.includes("+84", 0)) {
+      deconvertedPhoneNumber = `0${deconvertedPhoneNumber.substring(3)}`;
+    }
+    return deconvertedPhoneNumber;
+  };
+
   const addUserHandler = async () => {
-    const checkUserIsExisted = usersInfo.find((el) => {
-      return el.phone === inputPhone;
+    const convertedPhone = convertPhoneNumber(inputPhone);
+    const checkUserIsExisted = usersInfo.find((el, index) => {
+      console.log(`el: ${el.phone}    converted: ${convertedPhone}`);
+      return el.phone === convertedPhone;
     });
-    if (inputNickname.length === 0 || inputPhone.length === 0) {
+    console.log("checkUserIsExisted: " + checkUserIsExisted);
+    if (inputNickname.length === 0 || convertedPhone.length === 0) {
       setNotification("Name and phone must not be empty");
-    } else if (checkUserIsExisted >= 0) {
+    } else if (checkUserIsExisted) {
       setNotification("This phone number is already added!");
       setInputValue({ inputNickname: "", inputPhone: "" });
     } else {
@@ -73,7 +102,7 @@ const ManageMember = (props) => {
         "Users",
         "phone",
         "==",
-        inputPhone
+        convertedPhone
       );
       if (user && user.length === 1) {
         const newUserInList = {
@@ -87,7 +116,7 @@ const ManageMember = (props) => {
         setUsersInfo((prevValue) => {
           return [...prevValue, ...user];
         });
-        setInputValue({ inputNickname: "", inputPhone: "" });
+        setInputValue({ inputNickname: "", inputPhone : "" });
         setArrayIsChange(true);
       } else {
         setNotification("The phone number is not created!");
@@ -138,13 +167,25 @@ const ManageMember = (props) => {
             return (
               <tr key={el.userID}>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl self-center py-2 lg:py-8">
-                  <textarea
-                    rows="1"
-                    onChange={changeNickNameHandler}
-                    name={listUser[index].id}
-                    className="text-center w-full resize-y"
-                    value={listUser[index].nickname}
-                  />
+                  {loginUserInfo.role === "Admin" ||
+                  loginUserInfo.userID === el.userID ? (
+                    <textarea
+                      rows="1"
+                      onChange={changeNickNameHandler}
+                      name={listUser[index].id}
+                      className="text-center w-full resize-y"
+                      value={listUser[index].nickname}
+                    />
+                  ) : (
+                    <textarea
+                      rows="1"
+                      onChange={changeNickNameHandler}
+                      name={listUser[index].id}
+                      className="text-center w-full resize-y"
+                      value={listUser[index].nickname}
+                      readOnly
+                    />
+                  )}
                 </td>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-8">
                   {/* <input
@@ -154,7 +195,7 @@ const ManageMember = (props) => {
                     className="text-center w-full"
                     value={usersInfo[index].phone}
                   /> */}
-                  {el.phone}
+                  {deconvertPhoneNumber(el.phone)}
                 </td>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-8">
                   {el.debt.toLocaleString("it-IT", {
@@ -163,49 +204,60 @@ const ManageMember = (props) => {
                   })}
                 </td>
                 <td className="border-b border-black py-2 lg:py-4">
-                  <img
-                    name={listUser[index].id}
-                    className="mx-auto h-5 sm:h-8 md:h-10 m-4 cursor-pointer"
-                    src="images/cancel.png"
-                    alt="Workflow"
-                    onClick={removeUserHandler}
-                  />
+                  {loginUserInfo.role === "Admin" ? (
+                    <img
+                      name={listUser[index].id}
+                      className="mx-auto h-5 sm:h-8 md:h-10 m-4 cursor-pointer"
+                      src="images/cancel.png"
+                      alt="Workflow"
+                      onClick={removeUserHandler}
+                    />
+                  ) : (
+                    <img
+                      name={listUser[index].id}
+                      className="mx-auto h-5 sm:h-8 md:h-10 m-4 cursor-not-allowed"
+                      src="images/cancel.png"
+                      alt="Workflow"
+                    />
+                  )}
                 </td>
               </tr>
             );
           })}
-          <tr>
-            <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
-              <textarea
-                rows="1"
-                name="inputNickname"
-                className="placeholder-gray-500 text-center w-full"
-                placeholder="Nickname (required)"
-                value={inputNickname}
-                onChange={inputValueHandler}
-              />
-            </td>
-            <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
-              <input
-                name="inputPhone"
-                className="placeholder-gray-500 text-center w-full"
-                placeholder="Phone (required)"
-                value={inputPhone}
-                onChange={inputValueHandler}
-              />
-            </td>
-            <td className="text-gray-500 text-sm sm:text-lg md:text-xl py-2 lg:py-8">
-              (0 VND)
-            </td>
-            <td className="py-2 lg:py-4">
-              <img
-                className="mx-auto h-5 sm:h-8 md:h-10 w-auto m-4 cursor-pointer"
-                src="images/plus.png"
-                alt="Workflow"
-                onClick={addUserHandler}
-              />
-            </td>
-          </tr>
+          {loginUserInfo.role === "Admin" && (
+            <tr>
+              <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
+                <textarea
+                  rows="1"
+                  name="inputNickname"
+                  className="placeholder-gray-500 text-center w-full"
+                  placeholder="Nickname (required)"
+                  value={inputNickname}
+                  onChange={inputValueHandler}
+                />
+              </td>
+              <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
+                <input
+                  name="inputPhone"
+                  className="placeholder-gray-500 text-center w-full"
+                  placeholder="Phone (required)"
+                  value={inputPhone}
+                  onChange={inputValueHandler}
+                />
+              </td>
+              <td className="text-gray-500 text-sm sm:text-lg md:text-xl py-2 lg:py-8">
+                (0 VND)
+              </td>
+              <td className="py-2 lg:py-4">
+                <img
+                  className="mx-auto h-5 sm:h-8 md:h-10 w-auto m-4 cursor-pointer"
+                  src="images/plus.png"
+                  alt="Workflow"
+                  onClick={addUserHandler}
+                />
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
       {notification && (
@@ -225,20 +277,24 @@ const ManageMember = (props) => {
           <p className="ml-6 md:font-medium">{notification}</p>
         </div>
       )}
-      <div className="flex justify-end space-x-6 pr-4 sm:space-x-12 sm:pr-10 md:space-x-16 md:mt-8 lg:pr-14 xl:space-x-28 xl:mt-12">
-        <button
-          className="reset-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
-          onClick={resetDataHandler}
-        >
-          Reset
-        </button>
-        <button
-          className="save-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
-          onClick={saveDataHandler}
-        >
-          Save
-        </button>
-      </div>
+      {loginUserInfo.role === "Admin" ? (
+        <div className="flex justify-end space-x-6 pr-4 sm:space-x-12 sm:pr-10 md:space-x-16 md:mt-8 lg:pr-14 xl:space-x-28 xl:mt-12">
+          <button
+            className="reset-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
+            onClick={resetDataHandler}
+          >
+            Reset
+          </button>
+          <button
+            className="save-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
+            onClick={saveDataHandler}
+          >
+            Save
+          </button>
+        </div>
+      ) : (
+        ""
+      )}
     </div>
   );
 };

@@ -5,7 +5,7 @@ export const randomString = (length) => {
   var characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   var charactersLength = characters.length;
-  for (var i = 0; i < length; i++) {
+  for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
@@ -70,6 +70,28 @@ export const findDataFromFireStore = async (
     const querySnapshot = await db
       .collection(collectionName)
       .where(property, operation, object)
+      .get();
+    querySnapshot.forEach((doc) => {
+      data.push(doc.data());
+    });
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const findRefDataFromFireStore = async (
+  collectionName,
+  property,
+  operation,
+  collectionObjectName
+  ,object
+) => {
+  const data = [];
+  try {
+    const querySnapshot = await db
+      .collection(collectionName)
+      .where(property, operation, db.collection(collectionObjectName).doc(object))
       .get();
     querySnapshot.forEach((doc) => {
       data.push(doc.data());

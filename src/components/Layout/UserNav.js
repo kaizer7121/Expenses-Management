@@ -6,7 +6,6 @@ import { tokenAction } from "../../store/tokenSlice";
 const UserNav = () => {
   const dispatch = useDispatch();
   const logoutHandler = () => {
-    console.log("test");
     dispatch(authAction.logout());
     dispatch(tokenAction.deleteToken());
     Swal.fire("Sign out successfully", "Good bye", "success");
