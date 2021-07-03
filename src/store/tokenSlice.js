@@ -4,19 +4,22 @@ const tokenSlice = createSlice({
   name: "token",
   initialState: {
     token: localStorage.getItem("token"),
-    expirationTime: 0,
+    expirationTime: localStorage.getItem("expirationTime"),
   },
   reducers: {
     addToken(state, action) {
-      const { token, expiredTime } = action.payload;
+      const { token, expirationTime } = action.payload;
+
 
       localStorage.setItem("token", token);
+      localStorage.setItem("expirationTime", expirationTime);
 
       state.token = token;
-      state.expirationTime = expiredTime;
+      state.expirationTime = expirationTime;
     },
     deleteToken(state, action) {
       localStorage.removeItem("token");
+      localStorage.removeItem("expirationTime");
       state.token = null;
       state.expirationTime = 0;
     },

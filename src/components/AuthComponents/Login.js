@@ -1,9 +1,9 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import firebase from "../../Firebase";
 
 import Swal from "sweetalert2";
 import {
-  findDataFromFireStore,
+  findRefDataFromFireStore,
   getSingleDataFromFireStore,
   updateDataToFireStore,
 } from "../../action/Action";
@@ -12,7 +12,7 @@ import { authAction } from "../../store/authSlice";
 import { tokenAction } from "../../store/tokenSlice";
 
 let isRender = false;
-var downloadTimer;
+let downloadTimer;
 
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -21,6 +21,10 @@ const Login = () => {
   const [lockSend, setLockSend] = useState(false);
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    localStorage.removeItem("_grecaptcha");
+  },[])
 
   const setUpRecaptcha = () => {
     if (!isRender) {
@@ -38,6 +42,21 @@ const Login = () => {
     }
   };
 
+  const convertPhoneNumber = (phoneNum) => {
+    let convertedPhoneNumber = phoneNum;
+    if (convertedPhoneNumber.charAt(0) === "0") {
+      convertedPhoneNumber = convertedPhoneNumber.substring(1);
+    }
+    if (convertedPhoneNumber.includes("+840")) {
+      convertedPhoneNumber = convertedPhoneNumber.substring(4);
+    }
+    if (!convertedPhoneNumber.includes("+84", 0)) {
+      convertedPhoneNumber = `+84${convertedPhoneNumber}`;
+    }
+    console.log("convertedPhoneNumber: " + convertedPhoneNumber);
+    return convertedPhoneNumber;
+  };
+
   const sendCodeThroughSMS = () => {
     setLockSend(true);
     var timeleft = 30;
@@ -50,7 +69,7 @@ const Login = () => {
     }, 1000);
 
     setUpRecaptcha();
-    const userPhoneNumber = phoneNumber;
+    const userPhoneNumber = convertPhoneNumber(phoneNumber);
     const appVerifier = window.recaptchaVerifier;
     console.log(appVerifier);
     firebase
@@ -67,7 +86,11 @@ const Login = () => {
       })
       .catch((error) => {
         console.log(error);
-        Swal.fire("Opps", "Something wrong in your phone number", "error");
+        Swal.fire("Opps", "Something wrong in your phone number", "error").then(
+          () => {
+            window.location.reload();
+          }
+        );
         setLockSend(false);
         clearInterval(downloadTimer);
       });
@@ -92,44 +115,65 @@ const Login = () => {
       .then(async (result) => {
         const user = result.user;
         const uid = user.uid;
+        console.log("ID:" + uid);
         const userData = await getSingleDataFromFireStore("Users", uid);
         if (!userData) {
-          updateDataToFireStore(
-            "Users",
-            {
-              userID: uid,
-              phone: user.phoneNumber,
-              name: "",
-              debt: 0,
-              role: "User",
-            },
-            uid
-          );
+          updateDataToFireStore("Users", uid, {
+            userID: uid,
+            phone: user.phoneNumber,
+            name: "",
+            debt: 0,
+            role: "User",
+          });
+          dispatch(authAction.logout());
+          dispatch(tokenAction.deleteToken());
+          Swal.fire(
+            "Sorry",
+            "Your account don't have permission to login",
+            "warning"
+          ).then(() => {
+            window.location.reload();
+          });
         } else {
-          const checkUserInList = await findDataFromFireStore(
+          const checkUserInList = await findRefDataFromFireStore(
             "ListUser",
             "userID",
             "==",
+            "Users",
             uid
           );
-          if (checkUserInList) {
+          if (userData.role === "Admin" || checkUserInList.length === 1) {
+            console.log("LOGIN");
             const expirationTime = user.h.c;
             const token = user.Aa;
             dispatch(authAction.login(userData));
             dispatch(tokenAction.addToken({ token, expirationTime }));
-            Swal.fire("Sign in successfully", " ", "success");
+            Swal.fire("Sign in successfully", "", "success");
           } else {
+            dispatch(authAction.logout());
+            dispatch(tokenAction.deleteToken());
             Swal.fire(
               "Sorry",
               "Your account don't have permission to login",
               "warning"
-            );
+            ).then(() => {
+              window.location.reload();
+            });
           }
         }
       })
       .catch((error) => {
         // User couldn't sign in (bad verification code?)
-        Swal.fire("Opps", "Your verification code is not correct", "error");
+        console.log(error);
+        dispatch(authAction.logout());
+        dispatch(tokenAction.deleteToken());
+        Swal.fire(
+          "Opps",
+          "Your verification code is not correct",
+          "error"
+        ).then(() => {
+          window.location.reload();
+        });
         // ...
       });
   };
@@ -148,7 +192,6 @@ const Login = () => {
               Sign in to your account
             </h2>
           </div>
-
           <div className="mt-8 space-y-6">
             <input type="hidden" name="remember" defaultValue="true" />
             <div className="rounded-md shadow-sm space-y-2">
