@@ -1,21 +1,33 @@
-import { useState } from "react";
+import { useImperativeHandle } from "react";
+import { useState, forwardRef } from "react";
 import { useSelector } from "react-redux";
 import {
+  deleteDataInFireStore,
   findDataFromFireStore,
   randomString,
   updateDataToFireStore,
+  deconvertPhoneNumber,
+  convertPhoneNumber,
 } from "../../action/Action";
 import { db } from "../../Firebase";
 
 import "./ManageMember.css";
 
-const ManageMember = (props) => {
+const ManageMember = forwardRef((props, ref) => {
+  useImperativeHandle(ref, () => ({
+    addMemberToList(userPhone, userName) {
+      console.log("userPhone: " + userPhone);
+      console.log("userName:" + userName);
+    },
+  }));
+
   const [usersInfo, setUsersInfo] = useState([...props.usersInfo]);
   const [listUser, setListUser] = useState([...props.listUser]);
   const [backupArray, setBackupArray] = useState({
     usersInfo: [...usersInfo],
     listUser: [...listUser],
   });
+  const [deleteUsersID, setDeleteUserID] = useState([]);
   const [{ inputNickname, inputPhone }, setInputValue] = useState({
     inputNickname: "",
     inputPhone: "",
@@ -42,8 +54,10 @@ const ManageMember = (props) => {
   const removeUserHandler = (event) => {
     const targetedId = event.target.name;
     let selectedIndex = -1;
+    let idDeleted = "";
     setListUser((prevValue) => {
       selectedIndex = prevValue.findIndex((el) => el.id === targetedId);
+      idDeleted = prevValue[selectedIndex].id;
       prevValue.splice(selectedIndex, 1);
       return [...prevValue];
     });
@@ -51,6 +65,10 @@ const ManageMember = (props) => {
       prevValue.splice(selectedIndex, 1);
       return [...prevValue];
     });
+    setDeleteUserID((prevValue) => {
+      return [...prevValue, idDeleted];
+    });
+    setArrayIsChange(true);
   };
 
   const inputValueHandler = (event) => {
@@ -62,78 +80,61 @@ const ManageMember = (props) => {
     setNotification("");
   };
 
-  const convertPhoneNumber = (phoneNum) => {
-    let convertedPhoneNumber = phoneNum;
-    if (convertedPhoneNumber.charAt(0) === "0") {
-      convertedPhoneNumber = convertedPhoneNumber.substring(1);
-    }
-    if (convertedPhoneNumber.includes("+840")) {
-      convertedPhoneNumber = convertedPhoneNumber.substring(4);
-    }
-    if (!convertedPhoneNumber.includes("+84", 0)) {
-      convertedPhoneNumber = `+84${convertedPhoneNumber}`;
-    }
-    console.log("convertedPhoneNumber: " + convertedPhoneNumber);
-    return convertedPhoneNumber;
-  };
-
-  const deconvertPhoneNumber = (convertedPhone) => {
-    let deconvertedPhoneNumber = convertedPhone;
-    if (deconvertedPhoneNumber.includes("+84", 0)) {
-      deconvertedPhoneNumber = `0${deconvertedPhoneNumber.substring(3)}`;
-    }
-    return deconvertedPhoneNumber;
-  };
-
   const addUserHandler = async () => {
-    const convertedPhone = convertPhoneNumber(inputPhone);
-    const checkUserIsExisted = usersInfo.find((el, index) => {
-      console.log(`el: ${el.phone}    converted: ${convertedPhone}`);
-      return el.phone === convertedPhone;
-    });
-    console.log("checkUserIsExisted: " + checkUserIsExisted);
-    if (inputNickname.length === 0 || convertedPhone.length === 0) {
-      setNotification("Name and phone must not be empty");
-    } else if (checkUserIsExisted) {
-      setNotification("This phone number is already added!");
-      setInputValue({ inputNickname: "", inputPhone: "" });
-    } else {
-      const user = await findDataFromFireStore(
-        "Users",
-        "phone",
-        "==",
-        convertedPhone
-      );
-      if (user && user.length === 1) {
-        const newUserInList = {
-          id: randomString(15),
-          nickname: inputNickname,
-          userID: db.collection("Users").doc(user[0].userID),
-        };
-        setListUser((prevValue) => {
-          return [...prevValue, newUserInList];
-        });
-        setUsersInfo((prevValue) => {
-          return [...prevValue, ...user];
-        });
-        setInputValue({ inputNickname: "", inputPhone : "" });
-        setArrayIsChange(true);
-      } else {
-        setNotification("The phone number is not created!");
-      }
-    }
+    props.AddMember();
+    // const convertedPhone = convertPhoneNumber(inputPhone);
+    // const checkUserIsExisted = usersInfo.find((el, index) => {
+    //   console.log(`el: ${el.phone}    converted: ${convertedPhone}`);
+    //   return el.phone === convertedPhone;
+    // });
+    // console.log("checkUserIsExisted: " + checkUserIsExisted);
+    // if (inputNickname.length === 0 || convertedPhone.length === 0) {
+    //   setNotification("Name and phone must not be empty");
+    // } else if (checkUserIsExisted) {
+    //   setNotification("This phone number is already added!");
+    //   setInputValue({ inputNickname: "", inputPhone: "" });
+    // } else {
+    //   const user = await findDataFromFireStore(
+    //     "Users",
+    //     "phone",
+    //     "==",
+    //     convertedPhone
+    //   );
+    //   if (user && user.length === 1) {
+    //     const newUserInList = {
+    //       id: randomString(15),
+    //       nickname: inputNickname,
+    //       userID: db.collection("Users").doc(user[0].userID),
+    //     };
+    //     setListUser((prevValue) => {
+    //       return [...prevValue, newUserInList];
+    //     });
+    //     setUsersInfo((prevValue) => {
+    //       return [...prevValue, ...user];
+    //     });
+    //     setInputValue({ inputNickname: "", inputPhone: "" });
+    //     setArrayIsChange(true);
+    //   } else {
+    //     setNotification("The phone number is not created!");
+    //   }
+    // }
   };
 
   const resetDataHandler = () => {
     setUsersInfo([...backupArray.usersInfo]);
     setListUser([...backupArray.listUser]);
+    setDeleteUserID([]);
     setArrayIsChange(false);
   };
 
   const saveDataHandler = () => {
+    console.log(arrayIsChange);
     if (arrayIsChange) {
       console.log(listUser);
       setBackupArray(usersInfo);
+      deleteUsersID.map((el) => {
+        return deleteDataInFireStore("ListUser", el);
+      });
       listUser.map((el) => {
         return updateDataToFireStore("ListUser", el.id, el);
       });
@@ -167,34 +168,9 @@ const ManageMember = (props) => {
             return (
               <tr key={el.userID}>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl self-center py-2 lg:py-8">
-                  {loginUserInfo.role === "Admin" ||
-                  loginUserInfo.userID === el.userID ? (
-                    <textarea
-                      rows="1"
-                      onChange={changeNickNameHandler}
-                      name={listUser[index].id}
-                      className="text-center w-full resize-y"
-                      value={listUser[index].nickname}
-                    />
-                  ) : (
-                    <textarea
-                      rows="1"
-                      onChange={changeNickNameHandler}
-                      name={listUser[index].id}
-                      className="text-center w-full resize-y"
-                      value={listUser[index].nickname}
-                      readOnly
-                    />
-                  )}
+                  {el.name}
                 </td>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-8">
-                  {/* <input
-                    onChange={changeValueHandler}
-                    id={el.userID}
-                    name={`phone ${el.userID}`}
-                    className="text-center w-full"
-                    value={usersInfo[index].phone}
-                  /> */}
                   {deconvertPhoneNumber(el.phone)}
                 </td>
                 <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-8">
@@ -277,7 +253,7 @@ const ManageMember = (props) => {
           <p className="ml-6 md:font-medium">{notification}</p>
         </div>
       )}
-      {loginUserInfo.role === "Admin" ? (
+      {loginUserInfo.role === "Admin" && (
         <div className="flex justify-end space-x-6 pr-4 sm:space-x-12 sm:pr-10 md:space-x-16 md:mt-8 lg:pr-14 xl:space-x-28 xl:mt-12">
           <button
             className="reset-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
@@ -292,11 +268,9 @@ const ManageMember = (props) => {
             Save
           </button>
         </div>
-      ) : (
-        ""
       )}
     </div>
   );
-};
+});
 
 export default ManageMember;

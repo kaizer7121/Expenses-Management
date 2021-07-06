@@ -1,0 +1,17 @@
+.reset-button {
+    background-color: #233E8B;
+    color: white;
+}
+
+.reset-button:hover {
+    background-color: #1b3069;
+}
+
+.save-button {
+    background-color: #77ACF1;
+    color: white;
+}
+
+.save-button:hover {
+    background-color: #6795D0;
+}

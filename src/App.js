@@ -1,8 +1,9 @@
 import Auth from "./pages/Auth";
 import Members from "./pages/Members";
+import ProfileUser from "./pages/ProfileUser";
 import { Switch, Route, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { authAction } from "./store/authSlice";
 import { tokenAction } from "./store/tokenSlice";
 import firebase from "firebase";
@@ -12,6 +13,7 @@ import Test from "./components/test/test";
 function App() {
   const token = useSelector((state) => state.token.token);
   const expirationTime = useSelector((state) => state.token.expirationTime);
+  const userInfo = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -40,13 +42,19 @@ function App() {
   return (
     <Switch>
       <Route path="/" exact>
-        {token ? <Members /> : <Redirect to="/SignIn" />}
+        {!token ? <Redirect to="/SignIn" /> : <Members />}
       </Route>
       <Route path="/SignIn">{token ? <Redirect to="/" /> : <Auth />}</Route>
-      <Route path="/Test">{token ? <Redirect to="/" /> : <Auth />}</Route>
+      <Route path="/profile">
+        {token ? <ProfileUser /> : <Redirect to="/SignIn" />}
+      </Route>
+      <Route path="/Test">
+        <Test />
+      </Route>
       <Route path="*">
         <Redirect to="/" />
       </Route>
+      {userInfo.name.length === 0 && <Redirect to="/" />}
     </Switch>
   );
 }

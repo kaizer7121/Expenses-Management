@@ -7,7 +7,7 @@ const authSlice = createSlice({
     phone: "",
     name: "",
     debt: 0,
-    role: ""
+    role: "",
   },
   reducers: {
     login(state, action) {
@@ -24,6 +24,14 @@ const authSlice = createSlice({
       state.name = "";
       state.debt = 0;
       state.role = "";
+    },
+    updateProfile(state, action) {
+      console.log(action.payload);
+      console.log("test");
+      console.log("test");
+      console.log("test");
+      const name = action.payload;
+      state.name = name;
     },
   },
 });

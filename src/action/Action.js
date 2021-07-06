@@ -11,6 +11,29 @@ export const randomString = (length) => {
   return result;
 };
 
+export const convertPhoneNumber = (phoneNum) => {
+  let convertedPhoneNumber = phoneNum;
+  if (convertedPhoneNumber.charAt(0) === "0") {
+    convertedPhoneNumber = convertedPhoneNumber.substring(1);
+  }
+  if (convertedPhoneNumber.includes("+840")) {
+    convertedPhoneNumber = convertedPhoneNumber.substring(4);
+  }
+  if (!convertedPhoneNumber.includes("+84", 0)) {
+    convertedPhoneNumber = `+84${convertedPhoneNumber}`;
+  }
+  console.log("convertedPhoneNumber: " + convertedPhoneNumber);
+  return convertedPhoneNumber;
+};
+
+export const deconvertPhoneNumber = (convertedPhone) => {
+  let deconvertedPhoneNumber = convertedPhone;
+  if (deconvertedPhoneNumber.includes("+84", 0)) {
+    deconvertedPhoneNumber = `0${deconvertedPhoneNumber.substring(3)}`;
+  }
+  return deconvertedPhoneNumber;
+};
+
 export const getDataFromFireStore = async (collectionName) => {
   const data = [];
   const querySnapshot = await db.collection(collectionName).get();
@@ -40,10 +63,9 @@ export const getSingleDataFromFireStore = async (
   return data;
 };
 
-export const addDataToFireStore = (collectionName, data) => {
-  const uniqueID = randomString(15);
+export const addDataToFireStore = (collectionName, documentName, data) => {
   db.collection(collectionName)
-    .doc(uniqueID)
+    .doc(documentName)
     .set(data, { merge: true })
     .catch((err) => {
       console.log(err);
@@ -54,6 +76,15 @@ export const updateDataToFireStore = (collectionName, documentName, data) => {
   db.collection(collectionName)
     .doc(documentName)
     .set(data, { merge: true })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+export const deleteDataInFireStore = (collectionName, documentName) => {
+  db.collection(collectionName)
+    .doc(documentName)
+    .delete()
     .catch((err) => {
       console.log(err);
     });
@@ -84,14 +115,18 @@ export const findRefDataFromFireStore = async (
   collectionName,
   property,
   operation,
-  collectionObjectName
-  ,object
+  collectionObjectName,
+  object
 ) => {
   const data = [];
   try {
     const querySnapshot = await db
       .collection(collectionName)
-      .where(property, operation, db.collection(collectionObjectName).doc(object))
+      .where(
+        property,
+        operation,
+        db.collection(collectionObjectName).doc(object)
+      )
       .get();
     querySnapshot.forEach((doc) => {
       data.push(doc.data());

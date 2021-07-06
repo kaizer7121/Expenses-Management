@@ -24,7 +24,7 @@ const Login = () => {
 
   useEffect(() => {
     localStorage.removeItem("_grecaptcha");
-  },[])
+  }, []);
 
   const setUpRecaptcha = () => {
     if (!isRender) {
@@ -144,11 +144,13 @@ const Login = () => {
           );
           if (userData.role === "Admin" || checkUserInList.length === 1) {
             console.log("LOGIN");
-            const expirationTime = user.h.c;
-            const token = user.Aa;
-            dispatch(authAction.login(userData));
-            dispatch(tokenAction.addToken({ token, expirationTime }));
-            Swal.fire("Sign in successfully", "", "success");
+
+            Swal.fire("Sign in successfully", "", "success").then(() => {
+              const expirationTime = user.h.c;
+              const token = user.Aa;
+              dispatch(authAction.login(userData));
+              dispatch(tokenAction.addToken({ token, expirationTime }));
+            });
           } else {
             dispatch(authAction.logout());
             dispatch(tokenAction.deleteToken());
