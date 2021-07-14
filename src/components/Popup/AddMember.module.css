@@ -1,0 +1,45 @@
+.modal {
+  position: fixed;
+  top: 35vh;
+  left: 5%;
+  width: 90%;
+  background-color: white;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 30;
+  animation: slide-down 300ms ease-out forwards;
+}
+
+@media (min-width: 768px) {
+  .modal {
+    width: 30rem;
+    left: calc(50% - 20rem);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-3rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cancelButton {
+  background-color: #1eae98;
+}
+
+.cancelButton:hover {
+  background-color: #1a8272;
+}
+
+.addButton {
+  background-color: #77acf1;
+}
+
+.addButton:hover {
+  background-color: #6795d0;
+}

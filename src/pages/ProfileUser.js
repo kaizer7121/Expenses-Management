@@ -3,23 +3,14 @@ import { getDataFromFireStore } from "../action/Action";
 import Profile from "../components/Profile/Profile";
 import Loading from "../components/Loading/Loading";
 import Navigation from "../components/Layout/Navigation";
+import { useSelector } from "react-redux";
 const ProfileUser = () => {
-  const [userPayment, setUserPayment] = useState([]);
-  const [isLoading, setIsLoading] = useState([]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    getDataFromFireStore("PaymentMethods").then((data) => {
-      setUserPayment([...data]);
-      setIsLoading(false);
-    });
-  }, []);
+  const userPayment = useSelector((state) => state.data.paymentMethods);
 
   return (
     <div>
       <Navigation />
-      {isLoading && <Loading />}
-      {!isLoading && <Profile paymentInfos={userPayment} />}
+      <Profile paymentInfos={userPayment} />
     </div>
   );
 };

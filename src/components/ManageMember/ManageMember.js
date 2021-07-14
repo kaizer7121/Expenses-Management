@@ -1,55 +1,45 @@
 import { useImperativeHandle } from "react";
 import { useState, forwardRef } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   deleteDataInFireStore,
-  findDataFromFireStore,
-  randomString,
   updateDataToFireStore,
   deconvertPhoneNumber,
-  convertPhoneNumber,
+  updateMemberInStore,
+  randomString,
+  addMemberInStore,
 } from "../../action/Action";
 import { db } from "../../Firebase";
 
-import "./ManageMember.css";
+import classes from "./ManageMember.module.css";
 
 const ManageMember = forwardRef((props, ref) => {
-  useImperativeHandle(ref, () => ({
-    addMemberToList(userPhone, userName) {
-      console.log("userPhone: " + userPhone);
-      console.log("userName:" + userName);
-    },
-  }));
-
   const [usersInfo, setUsersInfo] = useState([...props.usersInfo]);
   const [listUser, setListUser] = useState([...props.listUser]);
   const [backupArray, setBackupArray] = useState({
     usersInfo: [...usersInfo],
     listUser: [...listUser],
   });
+  const [newMember, setNewMember] = useState([]);
   const [deleteUsersID, setDeleteUserID] = useState([]);
-  const [{ inputNickname, inputPhone }, setInputValue] = useState({
-    inputNickname: "",
-    inputPhone: "",
-  });
-  const [notification, setNotification] = useState("");
   const [arrayIsChange, setArrayIsChange] = useState(false);
 
   const loginUserInfo = useSelector((state) => state.auth);
 
-  const changeNickNameHandler = (event) => {
-    const targetedId = event.target.name;
-    const targetedContent = event.target.value;
-    setListUser((prevValue) => {
-      const selectedIndex = prevValue.findIndex((el) => el.id === targetedId);
-      const selectedObject = prevValue[selectedIndex];
-      prevValue[selectedIndex] = {
-        ...selectedObject,
-        nickname: targetedContent,
+  const dispatch = useDispatch();
+
+  useImperativeHandle(ref, () => ({
+    addMemberToList(selectedUser) {
+      setUsersInfo((prevValue) => [...prevValue, selectedUser]);
+      setNewMember((prevValue) => [...prevValue, selectedUser]);
+      const newUserInList = {
+        id: randomString(20),
+        userID: db.collection("Users").doc(selectedUser.userID),
       };
-      return [...prevValue];
-    });
-  };
+      setListUser((prevValue) => [...prevValue, newUserInList]);
+      setArrayIsChange(true);
+    },
+  }));
 
   const removeUserHandler = (event) => {
     const targetedId = event.target.name;
@@ -65,59 +55,15 @@ const ManageMember = forwardRef((props, ref) => {
       prevValue.splice(selectedIndex, 1);
       return [...prevValue];
     });
+
     setDeleteUserID((prevValue) => {
       return [...prevValue, idDeleted];
     });
     setArrayIsChange(true);
   };
 
-  const inputValueHandler = (event) => {
-    const type = event.target.name;
-    const content = event.target.value;
-    setInputValue((prevValue) => {
-      return { ...prevValue, [type]: content };
-    });
-    setNotification("");
-  };
-
-  const addUserHandler = async () => {
+  const addUserHandler = () => {
     props.AddMember();
-    // const convertedPhone = convertPhoneNumber(inputPhone);
-    // const checkUserIsExisted = usersInfo.find((el, index) => {
-    //   console.log(`el: ${el.phone}    converted: ${convertedPhone}`);
-    //   return el.phone === convertedPhone;
-    // });
-    // console.log("checkUserIsExisted: " + checkUserIsExisted);
-    // if (inputNickname.length === 0 || convertedPhone.length === 0) {
-    //   setNotification("Name and phone must not be empty");
-    // } else if (checkUserIsExisted) {
-    //   setNotification("This phone number is already added!");
-    //   setInputValue({ inputNickname: "", inputPhone: "" });
-    // } else {
-    //   const user = await findDataFromFireStore(
-    //     "Users",
-    //     "phone",
-    //     "==",
-    //     convertedPhone
-    //   );
-    //   if (user && user.length === 1) {
-    //     const newUserInList = {
-    //       id: randomString(15),
-    //       nickname: inputNickname,
-    //       userID: db.collection("Users").doc(user[0].userID),
-    //     };
-    //     setListUser((prevValue) => {
-    //       return [...prevValue, newUserInList];
-    //     });
-    //     setUsersInfo((prevValue) => {
-    //       return [...prevValue, ...user];
-    //     });
-    //     setInputValue({ inputNickname: "", inputPhone: "" });
-    //     setArrayIsChange(true);
-    //   } else {
-    //     setNotification("The phone number is not created!");
-    //   }
-    // }
   };
 
   const resetDataHandler = () => {
@@ -128,29 +74,36 @@ const ManageMember = forwardRef((props, ref) => {
   };
 
   const saveDataHandler = () => {
-    console.log(arrayIsChange);
     if (arrayIsChange) {
-      console.log(listUser);
       setBackupArray(usersInfo);
+      console.log("listUser:--------------");
+      console.log(listUser);
       deleteUsersID.map((el) => {
         return deleteDataInFireStore("ListUser", el);
       });
+      const reduxData = [];
       listUser.map((el) => {
-        return updateDataToFireStore("ListUser", el.id, el);
+        const { id, userID } = el;
+        if (userID) {
+          const uid = userID.path.split("/")[1];
+          reduxData.push({ id, uid });
+          return updateDataToFireStore("ListUser", el.id, el);
+        }
       });
+      addMemberInStore(reduxData, usersInfo, dispatch);
     }
   };
 
   return (
     <div>
-      <div className="mt-12 lg:mt-16 text-center w-full text-2xl font-semibold mb-20 sm:text-4xl md:w-3/12 md:border-b md:text-left md:text-3xl md:4/12 lg:text-4xl lg:mx-16 lg:w-3/12 2xl:w-2/12">
-        <h1>List member</h1>
+      <div className="mt-12 lg:mt-16 text-center w-full text-2xl font-semibold mb-8 sm:text-4xl md:w-3/12 md:border-b md:text-left md:text-3xl md:4/12 md:mb-12 lg:text-4xl lg:mx-16 lg:w-3/12 lg:mb-20 2xl:w-2/12">
+        <h1>Members</h1>
       </div>
       <table className="table-fixed border-collapse text-center lg:mx-16">
         <thead>
           <tr>
             <th className="border-b border-black text-base w-screen pb-2 sm:text-lg sm:pb-4 md:pb-8 lg:pb-12 md:text-2xl lg:w-screen">
-              <div>Nickname</div>
+              <div>Name</div>
             </th>
             <th className="border-b border-black text-base w-screen pb-2 sm:text-lg  sm:pb-4 md:pb-8 lg:pb-12 md:text-2xl lg:w-screen">
               <div>Phone</div>
@@ -203,23 +156,14 @@ const ManageMember = forwardRef((props, ref) => {
           {loginUserInfo.role === "Admin" && (
             <tr>
               <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
-                <textarea
-                  rows="1"
-                  name="inputNickname"
-                  className="placeholder-gray-500 text-center w-full"
-                  placeholder="Nickname (required)"
-                  value={inputNickname}
-                  onChange={inputValueHandler}
-                />
+                <p className="text-gray-500 text-center w-full">
+                  Nickname (required)
+                </p>
               </td>
               <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
-                <input
-                  name="inputPhone"
-                  className="placeholder-gray-500 text-center w-full"
-                  placeholder="Phone (required)"
-                  value={inputPhone}
-                  onChange={inputValueHandler}
-                />
+                <p className="text-gray-500 text-center w-full">
+                  Phone (required)
+                </p>
               </td>
               <td className="text-gray-500 text-sm sm:text-lg md:text-xl py-2 lg:py-8">
                 (0 VND)
@@ -236,33 +180,16 @@ const ManageMember = forwardRef((props, ref) => {
           )}
         </tbody>
       </table>
-      {notification && (
-        <div
-          className="mt-2 mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative md:py-5 md:text-lg"
-          role="alert"
-        >
-          <span className="absolute inset-y-0 left-0 flex items-center ml-4">
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-              <path
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-                fillRule="evenodd"
-              ></path>
-            </svg>
-          </span>
-          <p className="ml-6 md:font-medium">{notification}</p>
-        </div>
-      )}
       {loginUserInfo.role === "Admin" && (
         <div className="flex justify-end space-x-6 pr-4 sm:space-x-12 sm:pr-10 md:space-x-16 md:mt-8 lg:pr-14 xl:space-x-28 xl:mt-12">
           <button
-            className="reset-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
+            className={`${classes.resetButton} font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl`}
             onClick={resetDataHandler}
           >
             Reset
           </button>
           <button
-            className="save-button font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
+            className={`${classes.saveButton} font-semibold rounded-lg py-1 px-5 sm:py-2 sm:px-8 md:px-9 md:py-3 md:text-xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl`}
             onClick={saveDataHandler}
           >
             Save

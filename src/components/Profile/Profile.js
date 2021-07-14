@@ -3,15 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import PaymentMethod from "./PaymentMethod";
 import {
+  addNewPaymentMethods,
+  changeNameOfUser,
   deconvertPhoneNumber,
   deleteDataInFireStore,
+  deletePaymentMethods,
   randomString,
   updateDataToFireStore,
 } from "../../action/Action";
 import { db } from "../../Firebase";
 
-import "./Profile.css";
-import { authAction } from "../../store/authSlice";
+import classes from "./Profile.module.css";
 
 const Profile = (props) => {
   const userInfo = useSelector((state) => state.auth);
@@ -35,11 +37,6 @@ const Profile = (props) => {
 
   const dispatch = useDispatch();
   const history = useHistory();
-  // console.log("====================================");
-  // console.log(paymentInfos);
-  // console.log(newPayment);
-  // console.log(deletedPayments);
-  // console.log("====================================");
 
   useEffect(() => {
     setName(userInfo.name);
@@ -97,7 +94,7 @@ const Profile = (props) => {
     if (type && number && note) {
       if (type.length !== 0 && number.length !== 0 && note.length !== 0) {
         const newPaymentInfo = {
-          id: randomString(15),
+          id: randomString(20),
           type: infoPayment.type,
           number: infoPayment.number,
           note: infoPayment.note,
@@ -152,12 +149,14 @@ const Profile = (props) => {
 
   const saveDataHandler = () => {
     if (isChange) {
+      addNewPaymentMethods(newPayment, dispatch);
       if (newPayment.length !== 0) {
         newPayment.map((el) => {
           return updateDataToFireStore("PaymentMethods", el.id, el);
         });
       }
       if (deletedPayments.length !== 0) {
+        deletePaymentMethods(deletedPayments, dispatch);
         deletedPayments.map((el) => {
           return deleteDataInFireStore("PaymentMethods", el.id);
         });
@@ -170,12 +169,9 @@ const Profile = (props) => {
         return { ...prevValue, nameErr: "Your name must be empty!" };
       });
     } else {
-      const newUserInfo = {
-        ...userInfo,
-        name: name,
-      };
-      updateDataToFireStore("Users", userInfo.userID, newUserInfo);
-      dispatch(authAction.updateProfile(name));
+      if (userInfo.name !== name) {
+        changeNameOfUser(userInfo, name, dispatch);
+      }
       history.push("/");
     }
   };
@@ -286,26 +282,17 @@ const Profile = (props) => {
               </div>
             );
           })}
-          {/* <div className="mb-4 2xl:mb-8">
-            <PaymentMethod />
-          </div>
-          <div className="mb-4 2xl:mb-8">
-            <PaymentMethod />
-          </div>
-          <div className="mb-4 2xl:mb-8">
-            <PaymentMethod />
-          </div> */}
         </div>
       </div>
       <div className="flex justify-center space-x-28 pr-4 sm:space-x-12 sm:pr-10 md:space-x-16 md:mt-8 lg:pr-14 xl:space-x-48 xl:mt-12 md:pl-12">
         <button
-          className="reset-button font-semibold rounded-lg py-2 px-6 sm:py-2 sm:px-8 md:px-9 md:py-3 text-2xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
+          className={`${classes.resetButton} font-semibold rounded-lg py-2 px-6 sm:py-2 sm:px-8 md:px-9 md:py-3 text-2xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl`}
           onClick={resetDataHandler}
         >
           Reset
         </button>
         <button
-          className="save-button font-semibold rounded-lg py-2 px-6 sm:py-2 sm:px-8 md:px-9 md:py-3 text-2xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl"
+          className={`${classes.saveButton} font-semibold rounded-lg py-2 px-6 sm:py-2 sm:px-8 md:px-9 md:py-3 text-2xl lg:px-12 lg:text-2xl  xl:px-14 xl:text-2xl`}
           onClick={saveDataHandler}
         >
           Save

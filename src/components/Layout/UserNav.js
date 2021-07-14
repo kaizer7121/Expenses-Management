@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { authAction } from "../../store/authSlice";
 import { tokenAction } from "../../store/tokenSlice";
 import { useHistory } from "react-router";
+import { dataAction } from "../../store/dataSlice";
 
 const UserNav = () => {
   const dispatch = useDispatch();
@@ -10,6 +11,8 @@ const UserNav = () => {
   const logoutHandler = () => {
     dispatch(authAction.logout());
     dispatch(tokenAction.deleteToken());
+    dispatch(dataAction.deleleData());
+    localStorage.removeItem("_grecaptcha");
     Swal.fire("Sign out successfully", "Good bye", "success");
   };
 

@@ -18,7 +18,7 @@ const authSlice = createSlice({
       state.debt = +debt;
       state.role = role;
     },
-    logout(state, action) {
+    logout(state) {
       state.userID = "";
       state.phone = "";
       state.name = "";
@@ -26,10 +26,6 @@ const authSlice = createSlice({
       state.role = "";
     },
     updateProfile(state, action) {
-      console.log(action.payload);
-      console.log("test");
-      console.log("test");
-      console.log("test");
       const name = action.payload;
       state.name = name;
     },

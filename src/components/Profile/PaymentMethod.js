@@ -1,16 +1,16 @@
-import "./PaymentMethod.css";
+import classes from "./PaymentMethod.module.css";
 
 const PaymentMethod = (props) => {
   const setColor1 = {
-    backgroundColor: "background-1EAE98",
-    buttonColor: "button-F0EBCC",
-    textColor: "text-black",
+    backgroundColor: classes.background1EAE98,
+    buttonColor: classes.buttonF0EBCC,
+    textColor: classes.textBlack,
   };
 
   const setColor2 = {
-    backgroundColor: "background-F0EBCC",
-    buttonColor: "button-2563EB",
-    textColor: "text-white",
+    backgroundColor: classes.backgroundF0EBCC,
+    buttonColor: classes.button2563EB,
+    textColor: classes.textWhite,
   };
 
   const removeCard = () => {

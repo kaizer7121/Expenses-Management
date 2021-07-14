@@ -1,0 +1,61 @@
+.sort_filter_button {
+  background-color: #2a84fa;
+  color: white;
+}
+
+.sort_filter_button:hover {
+  background-color: #246ed0;
+}
+
+.add_bill_button {
+  background-color: #77acf1;
+  color: black;
+}
+
+.add_bill_button:hover {
+  background-color: #5282c1;
+  color: white;
+}
+
+hr {
+  margin: 2% auto 0;
+  border-color: #3b82f6;
+  width: 78%;
+}
+
+.layout {
+  margin: 5% auto 0;
+}
+
+@media only screen and (min-width: 1601px) {
+  .total_price {
+      margin-right: 12%;
+  }
+}
+
+@media only screen and (max-width: 1600px) {
+  hr {
+    margin: 2% auto 0;
+    border-color: #3b82f6;
+    width: 100%;
+  }
+}
+
+@media only screen and (max-width: 1000px) {
+  hr {
+    margin: 2% auto 0;
+    border-color: #3b82f6;
+    width: 90%;
+  }
+}
+
+@media only screen and (max-width: 820px) {
+  .layout {
+    margin: 10% auto 0;
+  }
+  hr {
+    margin: 2% auto 0;
+    border-color: #3b82f6;
+    width: 100%;
+  }
+}

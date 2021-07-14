@@ -1,9 +1,10 @@
 import { useState, Fragment } from "react";
-import { deconvertPhoneNumber } from "../../action/Action";
-import "./AddMember.css";
+import { convertPhoneNumber, deconvertPhoneNumber } from "../../action/Action";
+import classes from "./AddMember.module.css";
 import Backdrop from "./Backdrop/Backdrop";
 
 const AddMember = (props) => {
+  const [selectedValue, setSelectedValue] = useState("default");
   const [value, setValue] = useState({
     name: "empty",
     phone: "empty",
@@ -13,8 +14,8 @@ const AddMember = (props) => {
 
   const selectUserHandler = (event) => {
     const target = event.target.value;
+    setSelectedValue(target);
     const splitTarget = target.split(" - ");
-    console.log(splitTarget[1]);
     setIsSelect(true);
     setValue({
       name: splitTarget[0],
@@ -30,14 +31,14 @@ const AddMember = (props) => {
     if (!isSelect) {
       setNotification("You can't add an empty user");
     } else {
-      props.onAdd(value.phone, value.name);
+      props.onAdd(convertPhoneNumber(value.phone), value.name);
     }
   };
 
   return (
     <Fragment>
       <Backdrop />
-      <div className="modal">
+      <div className={`${classes.modal}`}>
         <div className="m-auto bg-gray-50 rounded-lg">
           <div className="font-bold text-center py-4 text-2xl mb-4 lg:text-3xl lg:mb-6">
             <p>Select user to add</p>
@@ -46,13 +47,13 @@ const AddMember = (props) => {
             <select
               className="w-9/12 md:w-8/12 h-10 pl-3 pr-6 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline"
               placeholder="Regular input"
-              defaultValue="default"
+              value={selectedValue}
               onChange={selectUserHandler}
             >
-              <option key="default" value="default" selected disabled hidden>
+              <option value="default" disabled hidden>
                 Choose user
               </option>
-              {props.listAllUser.map((el) => {
+              {props.listUser.map((el) => {
                 return (
                   <option key={el.userID} className="text-sm">
                     {`${el.name} - ${deconvertPhoneNumber(el.phone)}`}
@@ -80,13 +81,13 @@ const AddMember = (props) => {
           </div>
           <div className="text-center space-x-20 pb-6">
             <button
-              className="reset-button w-3/12 font-semibold rounded-lg py-2 sm:py-2 text-lg md:py-2 md:text-base lg:text-lg xl:text-xl"
+              className={`${classes.cancelButton} w-3/12 font-semibold rounded-lg py-2 sm:py-2 text-lg md:py-2 md:text-base lg:text-lg xl:text-xl`}
               onClick={cancelHandler}
             >
               Cancel
             </button>
             <button
-              className="save-button w-3/12 font-semibold rounded-lg py-2 sm:py-2 text-lg md:py-2 md:text-base lg:text-lg xl:text-xl"
+              className={`${classes.addButton} w-3/12 font-semibold rounded-lg py-2 sm:py-2 text-lg md:py-2 md:text-base lg:text-lg xl:text-xl`}
               onClick={addHandler}
             >
               Add
