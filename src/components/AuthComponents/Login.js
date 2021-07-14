@@ -10,6 +10,7 @@ import {
 import { useDispatch } from "react-redux";
 import { authAction } from "../../store/authSlice";
 import { tokenAction } from "../../store/tokenSlice";
+import { dataAction } from "../../store/dataSlice";
 
 let isRender = false;
 let downloadTimer;
@@ -24,7 +25,7 @@ const Login = () => {
 
   useEffect(() => {
     localStorage.removeItem("_grecaptcha");
-  },[])
+  }, []);
 
   const setUpRecaptcha = () => {
     if (!isRender) {
@@ -53,7 +54,6 @@ const Login = () => {
     if (!convertedPhoneNumber.includes("+84", 0)) {
       convertedPhoneNumber = `+84${convertedPhoneNumber}`;
     }
-    console.log("convertedPhoneNumber: " + convertedPhoneNumber);
     return convertedPhoneNumber;
   };
 
@@ -71,7 +71,6 @@ const Login = () => {
     setUpRecaptcha();
     const userPhoneNumber = convertPhoneNumber(phoneNumber);
     const appVerifier = window.recaptchaVerifier;
-    console.log(appVerifier);
     firebase
       .auth()
       .signInWithPhoneNumber(userPhoneNumber, appVerifier)
@@ -80,7 +79,6 @@ const Login = () => {
         // SMS sent. Prompt user to type the code from the message, then sign the
         // user in with confirmationResult.confirm(code).
         window.confirmationResult = confirmationResult;
-        console.log("Send successfully");
         setIsSendCode(true);
         // ...
       })
@@ -115,7 +113,6 @@ const Login = () => {
       .then(async (result) => {
         const user = result.user;
         const uid = user.uid;
-        console.log("ID:" + uid);
         const userData = await getSingleDataFromFireStore("Users", uid);
         if (!userData) {
           updateDataToFireStore("Users", uid, {
@@ -143,12 +140,12 @@ const Login = () => {
             uid
           );
           if (userData.role === "Admin" || checkUserInList.length === 1) {
-            console.log("LOGIN");
-            const expirationTime = user.h.c;
-            const token = user.Aa;
-            dispatch(authAction.login(userData));
-            dispatch(tokenAction.addToken({ token, expirationTime }));
-            Swal.fire("Sign in successfully", "", "success");
+            Swal.fire("Sign in successfully", "", "success").then(() => {
+              const expirationTime = user.h.c;
+              const token = user.Aa;
+              dispatch(authAction.login(userData));
+              dispatch(tokenAction.addToken({ token, expirationTime }));
+            });
           } else {
             dispatch(authAction.logout());
             dispatch(tokenAction.deleteToken());

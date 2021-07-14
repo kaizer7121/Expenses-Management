@@ -18,9 +18,11 @@ const Navigation = () => {
           >
             <img src="images/web-icon2.png" alt="logo" />
           </Link>
-          <span className="font-semibold tracking-tight text-2xl md:text-3xl lg:text-4xl hidden md:inline-block">
-            Expenses Management
-          </span>
+          <Link to="/">
+            <span className="font-semibold tracking-tight text-2xl md:text-3xl lg:text-4xl hidden md:inline-block">
+              Expenses Management
+            </span>
+          </Link>
         </div>
         <div className="block flex-grow lg:flex lg:items-center w-2/12  md:mt-2 lg:mt-2">
           <div className="text-sm lg:flex-grow ">
@@ -28,7 +30,7 @@ const Navigation = () => {
               className="text-base cursor-pointer text-teal-200 hover:text-blue-400 mr-3 text-white sm:mr-4 md:ml-. md:mr-0 lg:inline-block lg:mt-0 sm:text-lg sm:text-2xl md:text-xl lg:text-2xl"
               onClick={() => {}}
             >
-              Manage member
+              <Link to="/members">Manage member</Link>
             </p>
           </div>
         </div>

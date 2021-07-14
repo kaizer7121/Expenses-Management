@@ -1,15 +1,15 @@
-.reset-button {
+.resetButton {
     background-color: #1EAE98;
 }
 
-.reset-button:hover {
+.resetButton:hover {
     background-color: #1A8272;
 }
 
-.save-button {
+.saveButton {
     background-color: #77ACF1;
 }
 
-.save-button:hover {
+.saveButton:hover {
     background-color: #6795D0;
 }

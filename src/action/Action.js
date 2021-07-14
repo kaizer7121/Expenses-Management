@@ -1,4 +1,7 @@
+import { useDispatch, useSelector } from "react-redux";
 import { db } from "../Firebase";
+import { authAction } from "../store/authSlice";
+import { dataAction } from "../store/dataSlice";
 
 export const randomString = (length) => {
   var result = "";
@@ -10,6 +13,30 @@ export const randomString = (length) => {
   }
   return result;
 };
+
+export const convertPhoneNumber = (phoneNum) => {
+  let convertedPhoneNumber = phoneNum;
+  if (convertedPhoneNumber.charAt(0) === "0") {
+    convertedPhoneNumber = convertedPhoneNumber.substring(1);
+  }
+  if (convertedPhoneNumber.includes("+840")) {
+    convertedPhoneNumber = convertedPhoneNumber.substring(4);
+  }
+  if (!convertedPhoneNumber.includes("+84", 0)) {
+    convertedPhoneNumber = `+84${convertedPhoneNumber}`;
+  }
+  return convertedPhoneNumber;
+};
+
+export const deconvertPhoneNumber = (convertedPhone) => {
+  let deconvertedPhoneNumber = convertedPhone;
+  if (deconvertedPhoneNumber.includes("+84", 0)) {
+    deconvertedPhoneNumber = `0${deconvertedPhoneNumber.substring(3)}`;
+  }
+  return deconvertedPhoneNumber;
+};
+
+// ============================================================================
 
 export const getDataFromFireStore = async (collectionName) => {
   const data = [];
@@ -40,10 +67,9 @@ export const getSingleDataFromFireStore = async (
   return data;
 };
 
-export const addDataToFireStore = (collectionName, data) => {
-  const uniqueID = randomString(15);
+export const addDataToFireStore = (collectionName, documentName, data) => {
   db.collection(collectionName)
-    .doc(uniqueID)
+    .doc(documentName)
     .set(data, { merge: true })
     .catch((err) => {
       console.log(err);
@@ -54,6 +80,15 @@ export const updateDataToFireStore = (collectionName, documentName, data) => {
   db.collection(collectionName)
     .doc(documentName)
     .set(data, { merge: true })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+export const deleteDataInFireStore = (collectionName, documentName) => {
+  db.collection(collectionName)
+    .doc(documentName)
+    .delete()
     .catch((err) => {
       console.log(err);
     });
@@ -84,14 +119,18 @@ export const findRefDataFromFireStore = async (
   collectionName,
   property,
   operation,
-  collectionObjectName
-  ,object
+  collectionObjectName,
+  object
 ) => {
   const data = [];
   try {
     const querySnapshot = await db
       .collection(collectionName)
-      .where(property, operation, db.collection(collectionObjectName).doc(object))
+      .where(
+        property,
+        operation,
+        db.collection(collectionObjectName).doc(object)
+      )
       .get();
     querySnapshot.forEach((doc) => {
       data.push(doc.data());
@@ -100,4 +139,104 @@ export const findRefDataFromFireStore = async (
   } catch (err) {
     console.log(err);
   }
+};
+
+// =========================================================
+export const getPaymentMethods = async (userID, dispatch) => {
+  const paymentMethods = await findRefDataFromFireStore(
+    "PaymentMethods",
+    "userID",
+    "==",
+    "Users",
+    userID
+  );
+
+  let newPayment = [];
+  paymentMethods.map((el) => {
+    const { id, note, number, type } = el;
+    return newPayment.push({ id, note, number, type, userID });
+  });
+
+  dispatch(dataAction.getPaymentMethodsFromFireStore(newPayment));
+};
+
+export const getMemberDatas = async (dispatch) => {
+  let memberInListRaw = [];
+  let memberInfoInListRaw = [];
+  getDataFromFireStore("ListUser").then((data) => {
+    memberInListRaw = data;
+    const tmpList = [];
+    Promise.all(
+      data.map(async (el) => {
+        const ref = el.userID.path;
+        const [collectionName, documentName] = ref.split("/");
+        const user = await getSingleDataFromFireStore(
+          collectionName,
+          documentName
+        );
+        tmpList.push(user);
+      })
+    ).then(() => {
+      memberInfoInListRaw = tmpList;
+
+      let memberInList = [];
+      memberInListRaw.map((el) => {
+        const { id, userID } = el;
+        const uid = userID.path.split("/")[1];
+        return memberInList.push({ id, uid });
+      });
+
+      let memberInfoInList = [];
+      memberInfoInListRaw.map((el) => {
+        const { debt, name, phone, role, userID } = el;
+        return memberInfoInList.push({ debt, name, phone, role, userID });
+      });
+
+      dispatch(
+        dataAction.updateMemberFromFireStore({
+          memberInList,
+          memberInfoInList,
+        })
+      );
+    });
+  });
+};
+
+export const getAllUserInfo = async (dispatch) => {
+  const allUser = await getDataFromFireStore("Users");
+  dispatch(dataAction.getAllUserInfo(allUser));
+};
+
+export const changeNameOfUser = (userInfo, newName, dispatch) => {
+  const userID = userInfo.userID;
+  const newUserInfo = {
+    ...userInfo,
+    name: newName,
+  };
+
+  updateDataToFireStore("Users", userID, newUserInfo);
+  dispatch(authAction.updateProfile(newName));
+  dispatch(dataAction.updateNameOfUser({ userID, newName }));
+};
+
+export const addNewPaymentMethods = (paymentMethods, dispatch) => {
+  dispatch(dataAction.addPaymentMethods(paymentMethods));
+};
+
+export const deletePaymentMethods = (paymentMethods, dispatch) => {
+  dispatch(dataAction.deletePaymentMethods(paymentMethods));
+};
+
+export const updateMemberInStore = (
+  memberInList,
+  memberInfoInList,
+  dispatch
+) => {
+  dispatch(
+    dataAction.updateMemberFromFireStore({ memberInList, memberInfoInList })
+  );
+};
+
+export const addMemberInStore = (newMembersInList, memberInfoInList, dispatch) => {
+  dispatch(dataAction.addMemberToStore({ newMembersInList, memberInfoInList }));
 };
