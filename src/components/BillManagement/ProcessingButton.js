@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import classes from "./ProcessingButton.module.css";
 
-const ProcessingButton = () => {
+const ProcessingButton = (props) => {
   const [action, setAction] = useState("Off");
+  const [sortType, setSortType] = useState({
+    sortDateType: 0,
+    sortTotalType: 0,
+  });
+  const [filterType, setFilterType] = useState("All");
 
   const openSortOption = () => {
     if (action === "Sort") {
@@ -19,42 +24,109 @@ const ProcessingButton = () => {
       setAction("Filter");
     }
   };
-  const sort = (
+
+  const sortHandler = (event) => {
+    const type = event.target.id;
+    let sortData = { ...sortType };
+    if (type === "Date") {
+      sortData = {
+        sortDateType: (sortType.sortDateType % 2) + 1,
+        sortTotalType: 0,
+      };
+    } else if (type === "Total") {
+      sortData = {
+        sortDateType: 0,
+        sortTotalType: (sortType.sortTotalType % 2) + 1,
+      };
+    }
+    setSortType({
+      ...sortData,
+    });
+    props.onSort(sortData);
+  };
+
+  const filterHandler = (event) => {
+    const type = event.target.id;
+    setFilterType(type);
+    props.onFilter(type, sortType);
+  };
+
+  const sortOption = (
     <div className="flex justify-around font-semibold mt-4">
       <div>
         <span className="text-lg">Date</span>
         <div
-          className="float-right cursor-pointer ml-2 mt-1 -space-y-3 sm:-space-y-3 md:-space-y-3"
-          // onClick={sortHandler}
+          className="float-right cursor-pointer ml-2 pt-1.5"
+          onClick={sortHandler}
         >
-          <i id="date" className={`fas fa-sort-up flex`}></i>
-          <i id="date" className={`fas fa-sort-down flex`}></i>
+          <i
+            id="Date"
+            className={`fas fa-sort-up grid h-1 ${
+              sortType.sortDateType === 2 ? "hidden" : ""
+            }`}
+          ></i>
+          <i
+            id="Date"
+            className={`fas fa-sort-down grid h-1 ${
+              sortType.sortDateType === 1 ? "hidden" : ""
+            }`}
+          ></i>
         </div>
       </div>
       <div>
         <span className="text-lg">Total</span>
         <div
-          className="float-right cursor-pointer ml-2 mt-1 -space-y-3 sm:-space-y-3 md:-space-y-3"
-          // onClick={sortHandler}
+          className="float-right cursor-pointer ml-2 pt-1.5"
+          onClick={sortHandler}
         >
-          <i id="total" className={`fas fa-sort-up flex`}></i>
-          <i id="total" className={`fas fa-sort-down flex`}></i>
+          <i
+            id="Total"
+            className={`fas fa-sort-up grid h-1 ${
+              sortType.sortTotalType === 2 ? "hidden" : ""
+            }`}
+          ></i>
+          <i
+            id="Total"
+            className={`fas fa-sort-down grid h-1 ${
+              sortType.sortTotalType === 1 ? "hidden" : ""
+            }`}
+          ></i>
         </div>
       </div>
     </div>
   );
 
-  const filter = (
+  const filterOption = (
     <div className="flex justify-around font-semibold mt-4">
-      <div className="cursor-pointer text-blue-600">All</div>
-      <div className="cursor-pointer">Paid</div>
-      <div className="cursor-pointer">Unpaid</div>
+      <div
+        id="All"
+        className={`cursor-pointer ${filterType === "All" && "text-blue-600"}`}
+        onClick={filterHandler}
+      >
+        All
+      </div>
+      <div
+        id="Paid"
+        className={`cursor-pointer ${filterType === "Paid" && "text-blue-600"}`}
+        onClick={filterHandler}
+      >
+        Paid
+      </div>
+      <div
+        id="Unpaid"
+        className={`cursor-pointer ${
+          filterType === "Unpaid" && "text-blue-600"
+        }`}
+        onClick={filterHandler}
+      >
+        Unpaid
+      </div>
     </div>
   );
 
   return (
     <div
-      className={`${classes.layout} text-center w-11/12 sm:w-6/12 md:w-5/12 lg:w-4/12 xl:w-3/12 2xl:w-3/12`}
+      className={`${classes.layout} text-center w-11/12 sm:w-6/12 md:w-5/12 lg:w-4/12 2xl:w-3/12`}
     >
       <div className="justify-items-center mb-2 space-x-6">
         <button
@@ -76,11 +148,11 @@ const ProcessingButton = () => {
           Filter
         </button>
       </div>
-      {action === "Sort" && sort}
-      {action === "Filter" && filter}
+      {action === "Sort" && sortOption}
+      {action === "Filter" && filterOption}
       <hr></hr>
       <div className={`text-right ${classes.total_price} font-semibold`}>
-        Total left : 100.000  VND
+        Total left : 100.000 VND
       </div>
     </div>
   );
