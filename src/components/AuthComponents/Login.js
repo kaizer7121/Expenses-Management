@@ -3,14 +3,12 @@ import firebase from "../../Firebase";
 
 import Swal from "sweetalert2";
 import {
-  findRefDataFromFireStore,
   getSingleDataFromFireStore,
   updateDataToFireStore,
 } from "../../action/Action";
 import { useDispatch } from "react-redux";
 import { authAction } from "../../store/authSlice";
 import { tokenAction } from "../../store/tokenSlice";
-import { dataAction } from "../../store/dataSlice";
 
 let isRender = false;
 let downloadTimer;
@@ -20,12 +18,16 @@ const Login = () => {
   const [verificationCode, setVeriticationCode] = useState("");
   const [isSendCode, setIsSendCode] = useState(false);
   const [lockSend, setLockSend] = useState(false);
+  const [lockSubmit, setLockSubmit] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
     localStorage.removeItem("_grecaptcha");
-  }, []);
+    countdown > 0 && setTimeout(() => setCountdown(countdown - 1), 1000);
+    countdown === 0 && setLockSend(false);
+  }, [countdown]);
 
   const setUpRecaptcha = () => {
     if (!isRender) {
@@ -59,14 +61,15 @@ const Login = () => {
 
   const sendCodeThroughSMS = () => {
     setLockSend(true);
-    var timeleft = 30;
-    downloadTimer = setInterval(function () {
-      if (timeleft <= 0) {
-        setLockSend(false);
-        clearInterval(downloadTimer);
-      }
-      timeleft -= 1;
-    }, 1000);
+    setCountdown(30);
+    // downloadTimer = setInterval(function () {
+    //   console.log(countdown);
+    //   if (countdown <= 0) {
+    //     setLockSend(false);
+    //     clearInterval(downloadTimer);
+    //   }
+    //   setCountdown(countdown - 1);
+    // }, 1000);
 
     setUpRecaptcha();
     const userPhoneNumber = convertPhoneNumber(phoneNumber);
@@ -108,6 +111,7 @@ const Login = () => {
 
   const confirmCodeAndSignIn = () => {
     const code = verificationCode;
+    setLockSubmit(true);
     window.confirmationResult
       .confirm(code)
       .then(async (result) => {
@@ -132,31 +136,12 @@ const Login = () => {
             window.location.reload();
           });
         } else {
-          const checkUserInList = await findRefDataFromFireStore(
-            "ListUser",
-            "userID",
-            "==",
-            "Users",
-            uid
-          );
-          if (userData.role === "Admin" || checkUserInList.length === 1) {
-            Swal.fire("Sign in successfully", "", "success").then(() => {
-              const expirationTime = user.h.c;
-              const token = user.Aa;
-              dispatch(authAction.login(userData));
-              dispatch(tokenAction.addToken({ token, expirationTime }));
-            });
-          } else {
-            dispatch(authAction.logout());
-            dispatch(tokenAction.deleteToken());
-            Swal.fire(
-              "Sorry",
-              "Your account don't have permission to login",
-              "warning"
-            ).then(() => {
-              window.location.reload();
-            });
-          }
+          Swal.fire("Sign in successfully", "", "success").then(() => {
+            const expirationTime = user.h.c;
+            const token = user.Aa;
+            dispatch(authAction.login(userData));
+            dispatch(tokenAction.addToken({ token, expirationTime }));
+          });
         }
       })
       .catch((error) => {
@@ -215,7 +200,7 @@ const Login = () => {
                     className="sm:ml-8 group relative inline-flex w-3/12 sm:w-2/12 justify-center py-3 sm:py-2 px-1 border border-transparent text-xs font-medium rounded-sm text-white bg-gray-600 cursor-not-allowed"
                     disabled
                   >
-                    Wait 30s
+                    Wait {countdown}s
                   </button>
                 )}
               </div>
@@ -233,11 +218,22 @@ const Login = () => {
                 </div>
               )}
             </div>
-            {isSendCode && (
+            {isSendCode && !lockSubmit && (
               <div>
                 <button
                   type="submit"
                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-700 hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={confirmCodeAndSignIn}
+                >
+                  Sign in
+                </button>
+              </div>
+            )}
+            {isSendCode && lockSubmit && (
+              <div>
+                <button
+                  type="submit"
+                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 cursor-wait"
                   onClick={confirmCodeAndSignIn}
                 >
                   Sign in
