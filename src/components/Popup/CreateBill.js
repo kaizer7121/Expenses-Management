@@ -18,6 +18,7 @@ const CreateBill = (props) => {
   });
   const [numberOfParticipant, setNumberOfParticipant] = useState(0);
   const [amountIsChanging, setAmountIsChanging] = useState(false);
+  const [userIDIsModify, setUserIDIsModify] = useState([]);
 
   const handleDayChange = (day) => {
     if (day) {
@@ -58,11 +59,12 @@ const CreateBill = (props) => {
 
   const changePaticipantHandler = (event) => {
     const id = event.target.id;
-    const indexSelected = listMember.findIndex((el) => el.id === +id);
+    const indexSelected = listMember.findIndex((el) => el.id === id);
     const isAdd = event.target.checked;
     let tempNumberOfParticipant = numberOfParticipant;
     if (isAdd) {
       tempNumberOfParticipant++;
+      setUserIDIsModify([]);
       setNumberOfParticipant((prevValue) => prevValue + 1);
       setBillInformation((prevValue) => {
         return { ...prevValue, select: true };
@@ -77,6 +79,7 @@ const CreateBill = (props) => {
       });
     } else {
       tempNumberOfParticipant--;
+      setUserIDIsModify([]);
       setNumberOfParticipant((prevValue) => prevValue - 1);
       setBillInformation((prevValue) => {
         return { ...prevValue, select: true };
@@ -112,12 +115,52 @@ const CreateBill = (props) => {
 
   const changePercentHandler = (event) => {
     const id = event.target.id;
-    const indexSelected = listMember.findIndex((el) => el.id === +id);
+    const indexSelected = listMember.findIndex((el) => el.id === id);
+    const userSelected = { ...listMember[indexSelected] };
+    console.log(userSelected);
     let value = event.target.value.split("%");
-    if (!isNaN(+value[0])) {
-      if (+value[0] >= 100) {
-        value[0] = 100;
+    if (!isNaN(+value[0]) && userSelected.select) {
+      let tempUserIDModify = [...userIDIsModify];
+      let leftPercent = 100;
+      if (userIDIsModify.length === 0) {
+        leftPercent = 100;
+      } else {
+        tempUserIDModify.forEach((item) => {
+          console.log(item);
+          leftPercent -= item.percent;
+        });
       }
+
+      if (+value[0] >= leftPercent) {
+        value[0] = leftPercent;
+      }
+      const currentIndex = tempUserIDModify.findIndex((el) => {
+        return el.id === id;
+      });
+      console.log("currentIndex: " + currentIndex);
+      if (currentIndex === -1) {
+        tempUserIDModify.push({ id, percent: +value[0] });
+      } else {
+        tempUserIDModify.splice(currentIndex, 1);
+        console.log("test");
+        console.log(tempUserIDModify);
+        tempUserIDModify.push({ id, percent: +value[0] });
+        console.log("tes2");
+        console.log(tempUserIDModify);
+      }
+
+      if (tempUserIDModify.length === numberOfParticipant) {
+        tempUserIDModify.splice(0, 1);
+      }
+
+      leftPercent = 100;
+      tempUserIDModify.forEach((item) => {
+        console.log(item);
+        leftPercent -= item.percent;
+      });
+
+      console.log(tempUserIDModify);
+
       setListMember((prevValue) => {
         const selectedUser = { ...prevValue[indexSelected] };
         prevValue[indexSelected] = {
@@ -126,27 +169,34 @@ const CreateBill = (props) => {
           monney: (billInformation.amount * value[0]) / 100,
         };
         prevValue.forEach((el, index) => {
-          if (index !== indexSelected && el.select) {
-            const tempUser = prevValue[index];
-            const newPercent = (
-              (100 - value[0]) /
-              (numberOfParticipant - 1)
-            ).toFixed(2);
-            prevValue[index] = {
-              ...tempUser,
-              percent: newPercent,
-              monney: (billInformation.amount * newPercent) / 100,
-            };
+          const findIndex = tempUserIDModify.findIndex(
+            (anotherEl) => anotherEl.id === el.id
+          );
+          if (findIndex === -1) {
+            if (index !== indexSelected && el.select) {
+              const tempUser = prevValue[index];
+              console.log("LEFT: " + leftPercent);
+              const newPercent = (
+                leftPercent /
+                (numberOfParticipant - tempUserIDModify.length)
+              ).toFixed(2);
+              prevValue[index] = {
+                ...tempUser,
+                percent: newPercent,
+                monney: (billInformation.amount * newPercent) / 100,
+              };
+            }
           }
         });
         return [...prevValue];
       });
+      setUserIDIsModify([...tempUserIDModify]);
     }
   };
 
   return (
     <Fragment>
-      {/* <Backdrop /> */}
+      <Backdrop />
 
       <div
         className={`${classes.modal} p-4 overflow-auto max-h-full md:p-8 lg:p-10`}
@@ -228,7 +278,7 @@ const CreateBill = (props) => {
             ></input>
           </div>
         </div>
-        <div className="overflow-auto max-h-64 md:max-h-72 lg:max-h-80">
+        <div className="overflow-auto max-h-64 md:max-h-72 lg:max-h-80 xl:max-h-96">
           <table className="table-fixed border-collapse text-center sm:mt-6 ">
             <thead>
               <tr>
@@ -267,7 +317,7 @@ const CreateBill = (props) => {
                   <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-6">
                     <input
                       id={el.id}
-                      className="w-1/2 md:w-full text-center appearance-none bg-transparent leading-tight focus:outline-none"
+                      className="w-8/12 md:w-full text-center appearance-none bg-transparent leading-tight focus:outline-none"
                       type="text"
                       value={`${el.percent}%`}
                       onChange={changePercentHandler}

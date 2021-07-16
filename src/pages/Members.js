@@ -7,6 +7,7 @@ import Loading from "../components/Loading/Loading";
 import AddMember from "../components/Popup/AddMember";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
+import Test from "../components/test/test";
 
 const Members = () => {
   const [isAddingMember, setIsAddingMember] = useState(false);
@@ -67,6 +68,7 @@ const Members = () => {
           ref={childRef}
         />
       )}
+      <Test/>
       {isMemberDataSend && isAddingMember && (
         <AddMember
           listUser={usersNotInList}

@@ -5,10 +5,10 @@ import "react-day-picker/lib/style.css";
 import { useSelector } from "react-redux";
 
 const DUMMY_DATA = [
-  { id: 1, debt: 0, name: "Hữu Đức", phone: "+84703431760" },
-  { id: 2, debt: 0, name: "Đức", phone: "+84123456787" },
-  { id: 3, debt: 0, name: "Test", phone: "+84123456788" },
-  { id: 4, debt: 0, name: "Đào Hữu Đức", phone: "+84123456789" },
+  { id: "1", debt: 0, name: "Hữu Đức", phone: "+84703431760" },
+  { id: "2", debt: 0, name: "Đức", phone: "+84123456787" },
+  { id: "3", debt: 0, name: "Test", phone: "+84123456788" },
+  { id: "4", debt: 0, name: "Đào Hữu Đức", phone: "+84123456789" },
 ];
 
 const Test = () => {
