@@ -60,12 +60,12 @@ const BillManagement = () => {
   const history = useHistory();
 
   const isMemberDataSend = useSelector((state) => state.data.isMemberDataSend);
-  const allUserInfo = useSelector((state) => state.data.allUserInfo);
+  const memberInfoInList = useSelector((state) => state.data.memberInfoInList);
   const userInfo = useSelector((state) => state.auth);
   const listUserInBill = [];
-  allUserInfo.map((el) => {
+  memberInfoInList.map((el) => {
     const userInBill = {
-      id: el.id,
+      id: el.userID,
       name: el.name,
       phone: el.phone,
       monney: 0,

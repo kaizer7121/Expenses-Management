@@ -4,7 +4,11 @@ import { Fragment, useState } from "react";
 import DayPickerInput from "react-day-picker/DayPickerInput";
 import "react-day-picker/lib/style.css";
 import { formatDate, parseDate } from "react-day-picker/moment";
-import { deconvertPhoneNumber, randomString } from "../../action/Action";
+import {
+  deconvertPhoneNumber,
+  randomString,
+  updateDataToFireStore,
+} from "../../action/Action";
 import { useSelector } from "react-redux";
 import { db } from "../../Firebase";
 
@@ -133,7 +137,6 @@ const CreateBill = (props) => {
     const id = event.target.id;
     const indexSelected = listMember.findIndex((el) => el.id === id);
     const userSelected = { ...listMember[indexSelected] };
-    console.log(userSelected);
     let value = event.target.value.split("%");
     if (!isNaN(+value[0]) && userSelected.select) {
       let tempUserIDModify = [...userIDIsModify];
@@ -142,7 +145,6 @@ const CreateBill = (props) => {
         leftPercent = 100;
       } else {
         tempUserIDModify.forEach((item) => {
-          console.log(item);
           leftPercent -= item.percent;
         });
       }
@@ -153,7 +155,6 @@ const CreateBill = (props) => {
       const currentIndex = tempUserIDModify.findIndex((el) => {
         return el.id === id;
       });
-      console.log("currentIndex: " + currentIndex);
       if (currentIndex === -1) {
         tempUserIDModify.push({ id, percent: +value[0] });
       } else {
@@ -167,11 +168,8 @@ const CreateBill = (props) => {
 
       leftPercent = 100;
       tempUserIDModify.forEach((item) => {
-        console.log(item);
         leftPercent -= item.percent;
       });
-
-      console.log(tempUserIDModify);
 
       setListMember((prevValue) => {
         const selectedUser = { ...prevValue[indexSelected] };
@@ -187,7 +185,6 @@ const CreateBill = (props) => {
           if (findIndex === -1) {
             if (index !== indexSelected && el.select) {
               const tempUser = prevValue[index];
-              console.log("LEFT: " + leftPercent);
               const newPercent = (
                 leftPercent /
                 (numberOfParticipant - tempUserIDModify.length)
@@ -230,28 +227,45 @@ const CreateBill = (props) => {
       checkValidate = false;
     }
     if (!checkValidate) {
-      console.log("false");
       setNotification({ dateNoti, billNameNoti, amountNoti, paticipantNoti });
     } else {
-      console.log("True");
-      console.log(billInformation.date.toString());
-      console.log(billInformation.date);
-      const randomID = randomString(15);
+      const randomBillID = randomString(15);
       const fullBillInfo = {
-        id: randomID,
-        name: billInformation.name,
+        id: randomBillID,
+        billName: billInformation.name,
         createdDate: billInformation.date.toString(),
         owner: db.collection("Users").doc(userInfo.userID),
-        monney: billInformation.amount,
-        leftMonney: billInformation.amount,
+        total: billInformation.amount,
+        left: billInformation.amount,
+        isPaid: false,
       };
-
+      updateDataToFireStore("ListBill", randomBillID, fullBillInfo);
+      listMember.forEach((member) => {
+        if (member.select) {
+          const selectedMemberInList = memberInList.find(
+            (el) => el.uid === member.id
+          );
+          const participantID = randomString(15);
+          const participant = {
+            id: participantID,
+            userIDInList: db
+              .collection("ListUser")
+              .doc(selectedMemberInList.id),
+            billID: randomBillID,
+            monney: member.monney,
+            percent: member.percent,
+            isPaid: false,
+          };
+          updateDataToFireStore("ListUserOfBill", participantID, participant);
+        }
+      });
       setNotification({
         dateNoti: "",
         billNameNoti: "",
         amountNoti: "",
         paticipantNoti: "",
       });
+      props.onClose();
     }
   };
 
