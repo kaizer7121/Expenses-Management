@@ -51,6 +51,10 @@ const ProcessingButton = (props) => {
     props.onFilter(type, sortType);
   };
 
+  const createBillHandler = () => {
+    props.onOpen();
+  };
+
   const sortOption = (
     <div className="flex justify-around font-semibold mt-4">
       <div>
@@ -137,7 +141,7 @@ const ProcessingButton = (props) => {
         </button>
         <button
           className={`${classes.add_bill_button} px-4 font-semibold rounded-lg py-1 text-lg md:text-base lg:text-xl xl:text-2xl`}
-          // onClick={addHandler}
+          onClick={createBillHandler}
         >
           Create a bill
         </button>

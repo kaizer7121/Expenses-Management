@@ -4,7 +4,9 @@ import { Fragment, useState } from "react";
 import DayPickerInput from "react-day-picker/DayPickerInput";
 import "react-day-picker/lib/style.css";
 import { formatDate, parseDate } from "react-day-picker/moment";
-import { deconvertPhoneNumber } from "../../action/Action";
+import { deconvertPhoneNumber, randomString } from "../../action/Action";
+import { useSelector } from "react-redux";
+import { db } from "../../Firebase";
 
 const CreateBill = (props) => {
   const [listMember, setListMember] = useState([...props.listUserInBill]);
@@ -15,14 +17,22 @@ const CreateBill = (props) => {
   });
   const [notification, setNotification] = useState({
     dateNoti: "",
+    billNameNoti: "",
+    amountNoti: "",
+    paticipantNoti: "",
   });
   const [numberOfParticipant, setNumberOfParticipant] = useState(0);
   const [amountIsChanging, setAmountIsChanging] = useState(false);
   const [userIDIsModify, setUserIDIsModify] = useState([]);
 
+  const userInfo = useSelector((state) => state.auth);
+  const memberInList = useSelector((state) => state.data.memberInList);
+
   const handleDayChange = (day) => {
     if (day) {
-      setNotification({ dateNoti: "" });
+      setNotification((prevValue) => {
+        return { ...prevValue, dateNoti: "" };
+      });
       setBillInformation((prevValue) => {
         return { ...prevValue, date: day };
       });
@@ -36,6 +46,9 @@ const CreateBill = (props) => {
 
   const handleBillNameChange = (event) => {
     const name = event.target.value;
+    setNotification((prevValue) => {
+      return { ...prevValue, billNameNoti: "" };
+    });
     setBillInformation((prevValue) => {
       return { ...prevValue, name: name };
     });
@@ -53,6 +66,9 @@ const CreateBill = (props) => {
           tempList[index].monney = (amount * tempList[index].percent) / 100;
         }
       });
+      setNotification((prevValue) => {
+        return { ...prevValue, amountNoti: "" };
+      });
       setListMember([...listMember]);
     }
   };
@@ -66,8 +82,8 @@ const CreateBill = (props) => {
       tempNumberOfParticipant++;
       setUserIDIsModify([]);
       setNumberOfParticipant((prevValue) => prevValue + 1);
-      setBillInformation((prevValue) => {
-        return { ...prevValue, select: true };
+      setNotification((prevValue) => {
+        return { ...prevValue, paticipantNoti: "" };
       });
       setListMember((prevValue) => {
         const selectedUser = { ...prevValue[indexSelected] };
@@ -142,11 +158,7 @@ const CreateBill = (props) => {
         tempUserIDModify.push({ id, percent: +value[0] });
       } else {
         tempUserIDModify.splice(currentIndex, 1);
-        console.log("test");
-        console.log(tempUserIDModify);
         tempUserIDModify.push({ id, percent: +value[0] });
-        console.log("tes2");
-        console.log(tempUserIDModify);
       }
 
       if (tempUserIDModify.length === numberOfParticipant) {
@@ -194,10 +206,62 @@ const CreateBill = (props) => {
     }
   };
 
+  const saveHandler = () => {
+    let dateNoti = "";
+    let billNameNoti = "";
+    let amountNoti = "";
+    let paticipantNoti = "";
+    let checkValidate = true;
+
+    if (!billInformation.name && billInformation.name.length <= 0) {
+      billNameNoti = "Name of bill must not be empty";
+      checkValidate = false;
+    }
+    if (!billInformation.amount && billInformation.amount <= 0) {
+      amountNoti = "Amount of bill must greater than 0";
+      checkValidate = false;
+    }
+    if (numberOfParticipant === 0) {
+      paticipantNoti = "This bill don't have any paticipant";
+      checkValidate = false;
+    }
+    if (notification.dateNoti.length > 0) {
+      dateNoti = notification.dateNoti;
+      checkValidate = false;
+    }
+    if (!checkValidate) {
+      console.log("false");
+      setNotification({ dateNoti, billNameNoti, amountNoti, paticipantNoti });
+    } else {
+      console.log("True");
+      console.log(billInformation.date.toString());
+      console.log(billInformation.date);
+      const randomID = randomString(15);
+      const fullBillInfo = {
+        id: randomID,
+        name: billInformation.name,
+        createdDate: billInformation.date.toString(),
+        owner: db.collection("Users").doc(userInfo.userID),
+        monney: billInformation.amount,
+        leftMonney: billInformation.amount,
+      };
+
+      setNotification({
+        dateNoti: "",
+        billNameNoti: "",
+        amountNoti: "",
+        paticipantNoti: "",
+      });
+    }
+  };
+
+  const cancelHandler = () => {
+    props.onClose();
+  };
+
   return (
     <Fragment>
       <Backdrop />
-
       <div
         className={`${classes.modal} p-4 overflow-auto max-h-full md:p-8 lg:p-10`}
       >
@@ -207,7 +271,8 @@ const CreateBill = (props) => {
             <img
               src="images/cancel.png"
               alt="Cancel icon"
-              className="inline w-5 float-right"
+              className="inline w-5 float-right cursor-pointer"
+              onClick={cancelHandler}
             />
           </div>
           <div className="border-b border-gray-600 py-2 mr-1">
@@ -219,6 +284,12 @@ const CreateBill = (props) => {
               onChange={handleBillNameChange}
             ></input>
           </div>
+          {notification.billNameNoti &&
+            notification.billNameNoti.length > 0 && (
+              <p className="text-red-500 mb-6 text-sm sm:text-base sm:mt-0 sm:mb-0">
+                {notification.billNameNoti}
+              </p>
+            )}
         </div>
         <div className="w-full">
           <img
@@ -243,7 +314,7 @@ const CreateBill = (props) => {
               }}
             />
           </div>
-          {notification.dateNoti.length > 0 && (
+          {notification.dateNoti && notification.dateNoti.length > 0 && (
             <p className="text-red-500 -mt-6 mb-6 text-sm sm:text-base sm:mt-0 sm:mb-0">
               {notification.dateNoti}
             </p>
@@ -277,6 +348,11 @@ const CreateBill = (props) => {
               }}
             ></input>
           </div>
+          {notification.amountNoti && notification.amountNoti.length > 0 && (
+            <p className="text-red-500 mb-6 text-sm sm:text-base sm:mt-0 sm:mb-0">
+              {notification.amountNoti}
+            </p>
+          )}
         </div>
         <div className="overflow-auto max-h-64 md:max-h-72 lg:max-h-80 xl:max-h-96">
           <table className="table-fixed border-collapse text-center sm:mt-6 ">
@@ -339,16 +415,22 @@ const CreateBill = (props) => {
             </tbody>
           </table>
         </div>
+        {notification.paticipantNoti &&
+          notification.paticipantNoti.length > 0 && (
+            <p className="text-red-500 mb-6 text-sm sm:text-base sm:mt-0 sm:mb-0">
+              {notification.paticipantNoti}
+            </p>
+          )}
         <div className="flex justify-around mt-8 sm:justify-between sm:mt-12 sm:px-8">
           <button
             className={`${classes.close_button} font-semibold rounded-lg w-3/12 text-lg py-2 sm:w-5/24 sm:text-xl md:py-2 md:text-base lg:text-lg xl:text-xl`}
-            // onClick={cancelHandler}
+            onClick={cancelHandler}
           >
             Cancel
           </button>
           <button
             className={`${classes.save_button} font-semibold rounded-lg w-3/12 text-lg py-2 sm:w-5/24 sm:text-xl md:py-2 md:text-base lg:text-lg xl:text-xl`}
-            // onClick={addHandler}
+            onClick={saveHandler}
           >
             Save
           </button>

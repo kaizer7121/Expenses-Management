@@ -1,5 +1,9 @@
-import { Fragment, useState } from "react";
-import { useSelector } from "react-redux";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
+import { getAllUserInfo, getMemberDatas } from "../../action/Action";
+import Loading from "../Loading/Loading";
+import CreateBill from "../Popup/CreateBill";
 import ListBill from "./ListBill";
 import ProcessingButton from "./ProcessingButton";
 
@@ -49,6 +53,34 @@ const DUMMY_DATA = [
 const BillManagement = () => {
   const [bills, setBills] = useState(DUMMY_DATA);
   const [viewBills, setViewBills] = useState([...bills]);
+  const [isCreatingBill, setIsCreatingBill] = useState(false);
+
+  const dispatch = useDispatch();
+  const childRef = useRef();
+  const history = useHistory();
+
+  const isMemberDataSend = useSelector((state) => state.data.isMemberDataSend);
+  const allUserInfo = useSelector((state) => state.data.allUserInfo);
+  const userInfo = useSelector((state) => state.auth);
+  const listUserInBill = [];
+  allUserInfo.map((el) => {
+    const userInBill = {
+      id: el.id,
+      name: el.name,
+      phone: el.phone,
+      monney: 0,
+      percent: 0,
+      select: false,
+    };
+    return listUserInBill.push(userInBill);
+  });
+
+  useEffect(() => {
+    if (!isMemberDataSend) {
+      getMemberDatas(dispatch);
+      getAllUserInfo(dispatch);
+    }
+  }, [dispatch, isMemberDataSend]);
 
   const sortBills = (sortType, viewData) => {
     const { sortDateType, sortTotalType } = sortType;
@@ -95,10 +127,36 @@ const BillManagement = () => {
     sortBills(sortType, viewData);
   };
 
+  const openCreateBillPopup = () => {
+    setIsCreatingBill(true);
+  };
+
+  const closeCreateBillPopup = () => {
+    setIsCreatingBill(false);
+  };
+
   return (
     <Fragment>
-      <ProcessingButton onSort={sortBills} onFilter={filterBills} />
-      <ListBill bills={viewBills} />
+      {userInfo.userID.length !== 0 &&
+        userInfo.name.length === 0 &&
+        history.replace("/profile")}
+      {!isMemberDataSend && <Loading />}
+      {isMemberDataSend && (
+        <Fragment>
+          <ProcessingButton
+            onSort={sortBills}
+            onFilter={filterBills}
+            onOpen={openCreateBillPopup}
+          />
+          <ListBill bills={viewBills} ref={childRef} />
+        </Fragment>
+      )}
+      {isMemberDataSend && isCreatingBill && (
+        <CreateBill
+          listUserInBill={listUserInBill}
+          onClose={closeCreateBillPopup}
+        />
+      )}
     </Fragment>
   );
 };

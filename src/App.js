@@ -1,7 +1,7 @@
 import Auth from "./pages/Auth";
 import Members from "./pages/Members";
 import ProfileUser from "./pages/ProfileUser";
-import { Switch, Route, Redirect, useHistory } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, Fragment } from "react";
 import { authAction } from "./store/authSlice";
