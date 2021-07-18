@@ -5,11 +5,12 @@ import DayPickerInput from "react-day-picker/DayPickerInput";
 import "react-day-picker/lib/style.css";
 import { formatDate, parseDate } from "react-day-picker/moment";
 import {
+  addUserDebtToStore,
   deconvertPhoneNumber,
   randomString,
   updateDataToFireStore,
 } from "../../action/Action";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { db } from "../../Firebase";
 
 const CreateBill = (props) => {
@@ -28,9 +29,10 @@ const CreateBill = (props) => {
   const [numberOfParticipant, setNumberOfParticipant] = useState(0);
   const [amountIsChanging, setAmountIsChanging] = useState(false);
   const [userIDIsModify, setUserIDIsModify] = useState([]);
+  const [isOwnerParticipate, setIsOwnerParticipate] = useState(false);
 
   const userInfo = useSelector((state) => state.auth);
-  const memberInList = useSelector((state) => state.data.memberInList);
+  const dispatch = useDispatch();
 
   const handleDayChange = (day) => {
     if (day) {
@@ -89,6 +91,9 @@ const CreateBill = (props) => {
       setNotification((prevValue) => {
         return { ...prevValue, paticipantNoti: "" };
       });
+      if (userInfo.userID === id) {
+        setIsOwnerParticipate(true);
+      }
       setListMember((prevValue) => {
         const selectedUser = { ...prevValue[indexSelected] };
         prevValue[indexSelected] = {
@@ -229,6 +234,11 @@ const CreateBill = (props) => {
     if (!checkValidate) {
       setNotification({ dateNoti, billNameNoti, amountNoti, paticipantNoti });
     } else {
+      let ownerInfo = {};
+      if (isOwnerParticipate) {
+        ownerInfo = listMember.find((el) => el.id === userInfo.userID);
+      }
+
       const randomBillID = randomString(15);
       const fullBillInfo = {
         id: randomBillID,
@@ -236,27 +246,29 @@ const CreateBill = (props) => {
         createdDate: billInformation.date.toString(),
         owner: db.collection("Users").doc(userInfo.userID),
         total: billInformation.amount,
-        left: billInformation.amount,
-        isPaid: false,
+        left: isOwnerParticipate
+          ? billInformation.amount - ownerInfo.monney
+          : billInformation.amount,
+        isBillPaid: false,
       };
       updateDataToFireStore("ListBill", randomBillID, fullBillInfo);
       listMember.forEach((member) => {
         if (member.select) {
-          const selectedMemberInList = memberInList.find(
-            (el) => el.uid === member.id
-          );
           const participantID = randomString(15);
           const participant = {
             id: participantID,
-            userIDInList: db
-              .collection("ListUser")
-              .doc(selectedMemberInList.id),
+            userID: db.collection("Users").doc(member.id),
             billID: randomBillID,
             monney: member.monney,
             percent: member.percent,
-            isPaid: false,
+            isPaid:
+              isOwnerParticipate && member.id === ownerInfo.id ? true : false,
           };
           updateDataToFireStore("ListUserOfBill", participantID, participant);
+          if (member.id !== ownerInfo.id) {
+            addUserDebtToStore(member.id, member.monney, dispatch);
+            updateDataToFireStore("Users", member.id, { debt: member.monney });
+          }
         }
       });
       setNotification({

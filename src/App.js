@@ -7,7 +7,7 @@ import { useEffect, Fragment } from "react";
 import { authAction } from "./store/authSlice";
 import { tokenAction } from "./store/tokenSlice";
 import firebase from "firebase";
-import { getPaymentMethods, getSingleDataFromFireStore } from "./action/Action";
+import { getPaymentMethods, getRelatedBills, getSingleDataFromFireStore } from "./action/Action";
 import Test from "./components/test/test";
 import { dataAction } from "./store/dataSlice";
 import Bills from "./pages/Bills";
@@ -32,7 +32,7 @@ function App() {
           const token = user.Aa;
           const userID = user.uid;
           const userInfo = await getSingleDataFromFireStore("Users", userID);
-          getPaymentMethods(userID, dispatch);
+          await getPaymentMethods(userID, dispatch);
           dispatch(authAction.login(userInfo));
           dispatch(tokenAction.addToken({ token, expirationTime }));
         } else {

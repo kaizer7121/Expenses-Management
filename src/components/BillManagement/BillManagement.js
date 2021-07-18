@@ -1,7 +1,11 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
-import { getAllUserInfo, getMemberDatas } from "../../action/Action";
+import {
+  getAllUserInfo,
+  getMemberDatas,
+  getRelatedBills,
+} from "../../action/Action";
 import Loading from "../Loading/Loading";
 import CreateBill from "../Popup/CreateBill";
 import ListBill from "./ListBill";
@@ -51,9 +55,12 @@ const DUMMY_DATA = [
 ];
 
 const BillManagement = () => {
-  const [bills, setBills] = useState(DUMMY_DATA);
-  const [viewBills, setViewBills] = useState([...bills]);
+  const relatedBills = useSelector((state) => state.auth.relatedBills);
+  const userInfoEachBill = useSelector((state) => state.auth.userInfoEachBill);
+  const [currentbills, setCurrentBills] = useState([...relatedBills]);
+  const [viewBills, setViewBills] = useState([...relatedBills]);
   const [isCreatingBill, setIsCreatingBill] = useState(false);
+  const [allBillAreSend, setAllBillAreSend] = useState(false);
 
   const dispatch = useDispatch();
   const childRef = useRef();
@@ -80,7 +87,37 @@ const BillManagement = () => {
       getMemberDatas(dispatch);
       getAllUserInfo(dispatch);
     }
-  }, [dispatch, isMemberDataSend]);
+    if (userInfo.userID !== "") {
+      if (relatedBills[0].empty) {
+        console.log("1");
+        getRelatedBills(userInfo.userID, dispatch);
+      } else {
+        console.log("empty:");
+        console.log(relatedBills[0].empty);
+        const tempData = [];
+        relatedBills.forEach((item, index) => {
+          tempData.push({
+            id: item.id,
+            billName: item.billName,
+            createdDate: item.createdDate,
+            total: item.total,
+            left: item.left,
+            yourPart: userInfoEachBill[index].yourPart,
+            isPaid: userInfoEachBill[index].isUserPaid,
+          });
+        });
+        setViewBills([...tempData]);
+        setCurrentBills([...tempData]);
+        setAllBillAreSend(true);
+      }
+    }
+  }, [
+    dispatch,
+    isMemberDataSend,
+    userInfo.userID,
+    relatedBills,
+    userInfoEachBill,
+  ]);
 
   const sortBills = (sortType, viewData) => {
     const { sortDateType, sortTotalType } = sortType;
@@ -116,7 +153,7 @@ const BillManagement = () => {
 
   const filterBills = (filterType, sortType) => {
     console.log(filterType);
-    let viewData = [...bills];
+    let viewData = [...currentbills];
     if (filterType === "Paid") {
       console.log("PAID");
       viewData = viewData.filter((el) => el.isPaid === true);
@@ -140,18 +177,22 @@ const BillManagement = () => {
       {userInfo.userID.length !== 0 &&
         userInfo.name.length === 0 &&
         history.replace("/profile")}
-      {!isMemberDataSend && <Loading />}
-      {isMemberDataSend && (
+      {(!isMemberDataSend || !allBillAreSend) && <Loading />}
+      {isMemberDataSend && allBillAreSend && (
         <Fragment>
           <ProcessingButton
             onSort={sortBills}
             onFilter={filterBills}
             onOpen={openCreateBillPopup}
           />
-          <ListBill bills={viewBills} ref={childRef} />
+          <ListBill
+            bills={viewBills}
+            userInfoEachBill={userInfoEachBill}
+            ref={childRef}
+          />
         </Fragment>
       )}
-      {isMemberDataSend && isCreatingBill && (
+      {isMemberDataSend && !relatedBills[0].empty && isCreatingBill && (
         <CreateBill
           listUserInBill={listUserInBill}
           onClose={closeCreateBillPopup}
