@@ -8,8 +8,10 @@ const ProfileUser = () => {
   return (
     <div>
       <Navigation />
-      {userPayment[0].empty && <Loading />}
-      {!userPayment[0].empty && <Profile paymentInfos={userPayment} />}
+      {userPayment[0] && userPayment[0].empty && <Loading />}
+      {(!userPayment[0] || !userPayment[0].empty) && (
+        <Profile paymentInfos={userPayment} />
+      )}
     </div>
   );
 };

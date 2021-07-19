@@ -1,0 +1,70 @@
+.modal {
+    position: fixed;
+    top: 5vh;
+    /* left: 5%; */
+    width: 100%;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    z-index: 30;
+    animation: slide-down 300ms ease-out forwards;
+  }
+  
+  @media (min-width: 768px) {
+    .modal {
+      width: 40rem;
+      left: calc(50% - 20rem);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .modal {
+      width: 48rem;
+      left: calc(50% - 25rem);
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .modal {
+      width: 45rem;
+      left: calc(50% - 22rem);
+    }
+  }
+  
+  @media (min-width: 1536px) {
+    .modal {
+      width: 43rem;
+      left: calc(50% - 22rem);
+    }
+  }
+  
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-3rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .save_button {
+    background-color: #233e8b;
+    color: white;
+  }
+  
+  .save_button:hover {
+    background-color: #3259c5;
+    color: white;
+  }
+  
+  .close_button {
+    background-color: #77acf1;
+    color: white;
+  }
+  
+  .close_button:hover {
+    background-color: #6192d3;
+    color: white;
+  }
+  

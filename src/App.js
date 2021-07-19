@@ -7,7 +7,11 @@ import { useEffect, Fragment } from "react";
 import { authAction } from "./store/authSlice";
 import { tokenAction } from "./store/tokenSlice";
 import firebase from "firebase";
-import { getPaymentMethods, getRelatedBills, getSingleDataFromFireStore } from "./action/Action";
+import {
+  getPaymentMethods,
+  getRelatedBills,
+  getSingleDataFromFireStore,
+} from "./action/Action";
 import Test from "./components/test/test";
 import { dataAction } from "./store/dataSlice";
 import Bills from "./pages/Bills";
@@ -46,7 +50,7 @@ function App() {
     <Fragment>
       <Switch>
         <Route path="/" exact>
-          <Bills />
+          {token ? <Bills /> : <Redirect to="/SignIn" />}
         </Route>
         <Route path="/SignIn">{token ? <Redirect to="/" /> : <Auth />}</Route>
         <Route path="/profile">

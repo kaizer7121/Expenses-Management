@@ -256,28 +256,58 @@ export const addUserDebtToStore = (userID, debt, dispatch) => {
   dispatch(dataAction.addDebtOfUser({ userID, debt }));
 };
 
+export const addUserInfoEachBillToStore = (newInfo, dispatch) => {
+  const { id, bill, isPaid, monney, percent, user } = newInfo;
+  const userID = user.path.split("/")[1];
+  const billID = bill.path.split("/")[1];
+  dispatch(
+    authAction.addUserInfoEachBill({
+      id,
+      billID,
+      isUserPaid: isPaid,
+      yourPart: monney,
+      percent,
+      userID,
+    })
+  );
+};
+
 export const addRelatedBillToStore = (ownBillInfo, dispatch) => {
-  dispatch(authAction.addOwnBill(ownBillInfo));
+  const { id, billName, owner, createdDate, total, left, isBillPaid } =
+    ownBillInfo;
+  const ownerID = owner.path.split("/")[1];
+  dispatch(
+    authAction.addRelatedBill({
+      id,
+      billName,
+      ownerID,
+      createdDate,
+      total,
+      left,
+      isBillPaid,
+    })
+  );
 };
 
 export const getRelatedBills = async (userID, dispatch) => {
   const listIDInUserOfBillRaw = await findDataFromFireStore(
     "ListUserOfBill",
-    "userID",
+    "user",
     "==",
     db.collection("Users").doc(userID)
   );
   const listIDInUserOfBill = [];
   listIDInUserOfBillRaw.map((el) => {
-    const { id, billID, isPaid, monney, percent, userID } = el;
-    const uid = userID.path.split("/")[1];
+    const { id, bill, isPaid, monney, percent, user } = el;
+    const userID = user.path.split("/")[1];
+    const billID = bill.path.split("/")[1];
     return listIDInUserOfBill.push({
       id,
       billID,
       isUserPaid: isPaid,
       yourPart: monney,
       percent,
-      userID: uid,
+      userID,
     });
   });
   dispatch(authAction.getUserInfoEachBill(listIDInUserOfBill));

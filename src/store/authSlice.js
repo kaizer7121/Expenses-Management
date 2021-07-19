@@ -27,6 +27,9 @@ const authSlice = createSlice({
       state.name = "";
       state.debt = 0;
       state.role = "";
+      state.paymentMethods = [{ empty: true }];
+      state.relatedBills = [{ empty: true }];
+      state.userInfoEachBill = [{ empty: true }];
     },
     updateProfile(state, action) {
       const name = action.payload;

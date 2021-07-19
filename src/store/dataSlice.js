@@ -27,7 +27,6 @@ const dataSlice = createSlice({
     deleleData(state) {
       state.memberInList = [];
       state.memberInfoInList = [];
-      state.paymentMethods = [];
       state.allUserInfo = [];
       state.isMemberDataSend = false;
     },

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import classes from "./ProcessingButton.module.css";
 
 const ProcessingButton = (props) => {
@@ -8,6 +9,8 @@ const ProcessingButton = (props) => {
     sortTotalType: 0,
   });
   const [filterType, setFilterType] = useState("All");
+
+  const userInfo = useSelector((state) => state.auth);
 
   const openSortOption = () => {
     if (action === "Sort") {
@@ -156,7 +159,11 @@ const ProcessingButton = (props) => {
       {action === "Filter" && filterOption}
       <hr></hr>
       <div className={`text-right ${classes.total_price} font-semibold`}>
-        Total left : 100.000 VND
+        Total left :{" "}
+        {userInfo.debt.toLocaleString("it-IT", {
+          style: "currency",
+          currency: "VND",
+        })}
       </div>
     </div>
   );

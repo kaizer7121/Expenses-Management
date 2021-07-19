@@ -5,8 +5,11 @@ import DayPickerInput from "react-day-picker/DayPickerInput";
 import "react-day-picker/lib/style.css";
 import { formatDate, parseDate } from "react-day-picker/moment";
 import {
+  addRelatedBillToStore,
   addUserDebtToStore,
+  addUserInfoEachBillToStore,
   deconvertPhoneNumber,
+  getSingleDataFromFireStore,
   randomString,
   updateDataToFireStore,
 } from "../../action/Action";
@@ -126,10 +129,10 @@ const CreateBill = (props) => {
           const tempUser = prevValue[index];
           prevValue[index] = {
             ...tempUser,
-            percent: (100 / tempNumberOfParticipant).toFixed(2),
+            percent: (100 / tempNumberOfParticipant).toFixed(4),
             monney:
               (billInformation.amount *
-                (100 / tempNumberOfParticipant).toFixed(2)) /
+                (100 / tempNumberOfParticipant).toFixed(4)) /
               100,
           };
         }
@@ -193,7 +196,7 @@ const CreateBill = (props) => {
               const newPercent = (
                 leftPercent /
                 (numberOfParticipant - tempUserIDModify.length)
-              ).toFixed(2);
+              ).toFixed(4);
               prevValue[index] = {
                 ...tempUser,
                 percent: newPercent,
@@ -236,7 +239,9 @@ const CreateBill = (props) => {
     } else {
       let ownerInfo = {};
       if (isOwnerParticipate) {
-        ownerInfo = listMember.find((el) => el.id === userInfo.userID);
+        ownerInfo = listMember.find((el) => {
+          return el.id === userInfo.userID;
+        });
       }
 
       const randomBillID = randomString(15);
@@ -251,23 +256,32 @@ const CreateBill = (props) => {
           : billInformation.amount,
         isBillPaid: false,
       };
+      if (isOwnerParticipate) {
+        addRelatedBillToStore(fullBillInfo, dispatch);
+      }
       updateDataToFireStore("ListBill", randomBillID, fullBillInfo);
       listMember.forEach((member) => {
         if (member.select) {
           const participantID = randomString(15);
           const participant = {
             id: participantID,
-            userID: db.collection("Users").doc(member.id),
-            billID: randomBillID,
+            user: db.collection("Users").doc(member.id),
+            bill: db.collection("ListBill").doc(randomBillID),
             monney: member.monney,
             percent: member.percent,
             isPaid:
               isOwnerParticipate && member.id === ownerInfo.id ? true : false,
           };
           updateDataToFireStore("ListUserOfBill", participantID, participant);
-          if (member.id !== ownerInfo.id) {
+          if (isOwnerParticipate && member.id === ownerInfo.id) {
+            addUserInfoEachBillToStore(participant, dispatch);
+          }
+          if (!isOwnerParticipate || member.id !== ownerInfo.id) {
             addUserDebtToStore(member.id, member.monney, dispatch);
-            updateDataToFireStore("Users", member.id, { debt: member.monney });
+            const memberInfo = getSingleDataFromFireStore("Users", member.id);
+            updateDataToFireStore("Users", member.id, {
+              debt: memberInfo.debt + member.monney,
+            });
           }
         }
       });
@@ -421,7 +435,7 @@ const CreateBill = (props) => {
                       id={el.id}
                       className="w-8/12 md:w-full text-center appearance-none bg-transparent leading-tight focus:outline-none"
                       type="text"
-                      value={`${el.percent}%`}
+                      value={`${(+el.percent).toFixed(1)}%`}
                       onChange={changePercentHandler}
                     ></input>
                   </td>

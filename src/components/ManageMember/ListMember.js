@@ -21,6 +21,10 @@ const ManageMember = forwardRef((props, ref) => {
   });
   const [deleteUsersID, setDeleteUserID] = useState([]);
   const [arrayIsChange, setArrayIsChange] = useState(false);
+  const [notification, setNotification] = useState({
+    message: "",
+    type: "",
+  });
 
   const loginUserInfo = useSelector((state) => state.auth);
 
@@ -40,26 +44,40 @@ const ManageMember = forwardRef((props, ref) => {
 
   const removeUserHandler = (event) => {
     const targetedId = event.target.name;
-    let selectedIndex = -1;
+    let selectedIndex = listUser.findIndex((el) => el.id === targetedId);
     let idDeleted = "";
-    setListUser((prevValue) => {
-      selectedIndex = prevValue.findIndex((el) => el.id === targetedId);
-      idDeleted = prevValue[selectedIndex].id;
-      prevValue.splice(selectedIndex, 1);
-      return [...prevValue];
-    });
-    setUsersInfo((prevValue) => {
-      prevValue.splice(selectedIndex, 1);
-      return [...prevValue];
-    });
+    if (usersInfo[selectedIndex].debt > 0) {
+      setNotification({
+        message: "You can't remove member who having a debt!",
+        type: "Warning",
+      });
+    } else {
+      setListUser((prevValue) => {
+        idDeleted = prevValue[selectedIndex].id;
+        prevValue.splice(selectedIndex, 1);
+        return [...prevValue];
+      });
+      setUsersInfo((prevValue) => {
+        prevValue.splice(selectedIndex, 1);
+        return [...prevValue];
+      });
 
-    setDeleteUserID((prevValue) => {
-      return [...prevValue, idDeleted];
-    });
-    setArrayIsChange(true);
+      setDeleteUserID((prevValue) => {
+        return [...prevValue, idDeleted];
+      });
+      setArrayIsChange(true);
+      setNotification({
+        message: "",
+        type: "",
+      });
+    }
   };
 
   const addUserHandler = () => {
+    setNotification({
+      message: "",
+      type: "",
+    });
     props.AddMember();
   };
 
@@ -67,6 +85,10 @@ const ManageMember = forwardRef((props, ref) => {
     setUsersInfo([...backupArray.usersInfo]);
     setListUser([...backupArray.listUser]);
     setDeleteUserID([]);
+    setNotification({
+      message: "",
+      type: "",
+    });
     setArrayIsChange(false);
   };
 
@@ -89,6 +111,10 @@ const ManageMember = forwardRef((props, ref) => {
       });
       addMemberInStore(reduxData, usersInfo, dispatch);
     }
+    setNotification({
+      message: "Save completely!",
+      type: "Success",
+    });
   };
 
   return (
@@ -154,12 +180,12 @@ const ManageMember = forwardRef((props, ref) => {
             <tr>
               <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
                 <p className="text-gray-500 text-center w-full">
-                  Nickname (required)
+                  Name
                 </p>
               </td>
               <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
                 <p className="text-gray-500 text-center w-full">
-                  Phone (required)
+                  Phone
                 </p>
               </td>
               <td className="text-gray-500 text-sm sm:text-lg md:text-xl py-2 lg:py-8">
@@ -177,6 +203,19 @@ const ManageMember = forwardRef((props, ref) => {
           )}
         </tbody>
       </table>
+      {notification.message !== "" && (
+        <div
+          className={`relative my-6 py-3 pl-4 pr-10 leading-normal ${
+            notification.type === "Warning"
+              ? "text-red-700 bg-red-100 "
+              : "text-green-700 bg-green-100 "
+          }rounded-lg`}
+        >
+          <p className="font-medium pl-2 text-sm sm:text-base md:text-lg lg:pl-8 xl:text-xl">
+            {notification.message}
+          </p>
+        </div>
+      )}
       {loginUserInfo.role === "Admin" && (
         <div className="flex justify-end space-x-6 pr-4 sm:space-x-12 sm:pr-10 md:space-x-16 md:mt-8 lg:pr-14 xl:space-x-28 xl:mt-12">
           <button

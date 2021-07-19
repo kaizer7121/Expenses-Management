@@ -88,12 +88,10 @@ const BillManagement = () => {
       getAllUserInfo(dispatch);
     }
     if (userInfo.userID !== "") {
-      if (relatedBills[0].empty) {
+      if (relatedBills[0] && relatedBills[0].empty) {
         console.log("1");
         getRelatedBills(userInfo.userID, dispatch);
       } else {
-        console.log("empty:");
-        console.log(relatedBills[0].empty);
         const tempData = [];
         relatedBills.forEach((item, index) => {
           tempData.push({
@@ -192,7 +190,7 @@ const BillManagement = () => {
           />
         </Fragment>
       )}
-      {isMemberDataSend && !relatedBills[0].empty && isCreatingBill && (
+      {isMemberDataSend && allBillAreSend && isCreatingBill && (
         <CreateBill
           listUserInBill={listUserInBill}
           onClose={closeCreateBillPopup}

@@ -5,9 +5,14 @@ import "react-day-picker/lib/style.css";
 import { useSelector } from "react-redux";
 import { Fragment } from "react";
 import { updateDataToFireStore } from "../../action/Action";
+import BillDetail from "../Popup/BillDetail";
 
 const Test = () => {
-  return <Fragment></Fragment>;
+  return (
+    <Fragment>
+      <BillDetail />
+    </Fragment>
+  );
 };
 
 export default Test;

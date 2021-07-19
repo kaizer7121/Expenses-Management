@@ -1,10 +1,7 @@
-import { forwardRef, useImperativeHandle } from "react";
 import { getMonthAndYearOfDate } from "../../action/Action";
 import classes from "./ListBill.module.css";
 
-const ListBill = forwardRef((props, ref) => {
-  useImperativeHandle(ref, () => ({}));
-
+const ListBill = (props) => {
   const setPaidColor = {
     backgroundColor: classes.background77ACF1,
     buttonColor: classes.buttonF0EBCC,
@@ -80,6 +77,6 @@ const ListBill = forwardRef((props, ref) => {
       })}
     </div>
   );
-});
+};
 
 export default ListBill;
