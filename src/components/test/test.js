@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { Fragment } from "react";
 import { updateDataToFireStore } from "../../action/Action";
 import BillDetail from "../Popup/BillDetail";
+import UserPaymentMethods from "../Popup/UserPaymentMethods";
 
 const Test = () => {
   return (

@@ -1,7 +1,8 @@
-import { useDispatch, useSelector } from "react-redux";
 import { db } from "../Firebase";
 import { authAction } from "../store/authSlice";
 import { dataAction } from "../store/dataSlice";
+import firebase from "firebase/app";
+import "firebase/firestore";
 
 export const randomString = (length) => {
   var result = "";
@@ -38,9 +39,18 @@ export const deconvertPhoneNumber = (convertedPhone) => {
 
 export const getMonthAndYearOfDate = (date) => {
   const getDate = new Date(date);
-  const month = getDate.getMonth();
+  const month = getDate.getMonth() + 1;
   const year = getDate.getFullYear();
   const result = `${month}/${year}`;
+  return result;
+};
+
+export const getDayMonthAndYearOfDate = (date) => {
+  const getDate = new Date(date);
+  const day = getDate.getDate();
+  const month = getDate.getMonth() + 1;
+  const year = getDate.getFullYear();
+  const result = `${day}/${month}/${year}`;
   return result;
 };
 // ============================================================================
@@ -148,6 +158,17 @@ export const findRefDataFromFireStore = async (
   }
 };
 
+export const increaseDebtOfUserInFireStore = (userID, debt) => {
+  console.log("Updating debt");
+  db.collection("Users")
+    .doc(userID)
+    .update({
+      debt: firebase.firestore.FieldValue.increment(debt),
+    })
+    .then(() => console.log("Update debt!"))
+    .catch((err) => console.log(err));
+};
+
 // =========================================================
 export const getPaymentMethods = async (userID, dispatch) => {
   const paymentMethods = await findRefDataFromFireStore(
@@ -207,6 +228,10 @@ export const getMemberDatas = async (dispatch) => {
       );
     });
   });
+};
+
+export const deleteSingleMemberInListInStore = (id, dispatch) => {
+  dispatch(dataAction.deleteSingleMemberInfoInList(id));
 };
 
 export const getAllUserInfo = async (dispatch) => {
@@ -340,4 +365,16 @@ export const getRelatedBills = async (userID, dispatch) => {
     });
     dispatch(authAction.getRelatedBillsFromFireStore(relatedBills));
   });
+};
+
+export const editRelatedBillInStore = (billID, newBillInfo, dispatch) => {
+  dispatch(authAction.editRelatedBill({ billID, newBillInfo }));
+};
+
+export const editUserInfoEachBillInStore = (id, newInfo, dispatch) => {
+  dispatch(authAction.editUserInfoEachBill({ id, newInfo }));
+};
+
+export const editDebtOfLoginUserInStore = (debt, dispatch) => {
+  dispatch(authAction.editDebt(debt));
 };

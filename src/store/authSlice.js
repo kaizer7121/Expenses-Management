@@ -59,6 +59,13 @@ const authSlice = createSlice({
       const newInfo = action.payload;
       state.userInfoEachBill = [...state.userInfoEachBill, newInfo];
     },
+    editUserInfoEachBill(state, action) {
+      const { id, newInfo } = action.payload;
+      let tempData = [...state.userInfoEachBill];
+      const selectedIndex = tempData.findIndex((el) => el.id === id);
+      tempData[selectedIndex] = { ...tempData[selectedIndex], ...newInfo };
+      state.userInfoEachBill = [...tempData];
+    },
     getRelatedBillsFromFireStore(state, action) {
       const relatedBills = action.payload;
       state.relatedBills = [...relatedBills];
@@ -69,10 +76,14 @@ const authSlice = createSlice({
     },
     editRelatedBill(state, action) {
       const { billID, newBillInfo } = action.payload;
-      let tempData = [...state.ownBills];
+      let tempData = [...state.relatedBills];
       const selectedIndex = tempData.findIndex((el) => el.id === billID);
-      tempData[selectedIndex] = { ...newBillInfo };
+      tempData[selectedIndex] = { ...tempData[selectedIndex], ...newBillInfo };
       state.relatedBills = [...tempData];
+    },
+    editDebt(state, action) {
+      const debt = action.payload;
+      state.debt = debt;
     },
   },
 });

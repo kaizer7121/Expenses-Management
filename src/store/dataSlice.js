@@ -47,6 +47,14 @@ const dataSlice = createSlice({
       tempData[selectedIndex] = { ...oldObject, debt: oldDebt + debt };
       state.memberInfoInList = [...tempData];
     },
+    deleteSingleMemberInfoInList(state, action) {
+      const id = action.payload;
+
+      const tempData = state.memberInList.filter((el) => {
+        return el.id !== id;
+      });
+      state.memberInList = [...tempData];
+    },
   },
 });
 

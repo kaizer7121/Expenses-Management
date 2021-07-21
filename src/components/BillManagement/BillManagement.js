@@ -7,9 +7,11 @@ import {
   getRelatedBills,
 } from "../../action/Action";
 import Loading from "../Loading/Loading";
+import BillDetail from "../Popup/BillDetail";
 import CreateBill from "../Popup/CreateBill";
 import ListBill from "./ListBill";
 import ProcessingButton from "./ProcessingButton";
+import UserPaymentMethods from "../Popup/UserPaymentMethods";
 
 const DUMMY_DATA = [
   {
@@ -59,11 +61,19 @@ const BillManagement = () => {
   const userInfoEachBill = useSelector((state) => state.auth.userInfoEachBill);
   const [currentbills, setCurrentBills] = useState([...relatedBills]);
   const [viewBills, setViewBills] = useState([...relatedBills]);
+  const [ownerOfEachBill, setOwnerOfEachBill] = useState([]);
   const [isCreatingBill, setIsCreatingBill] = useState(false);
   const [allBillAreSend, setAllBillAreSend] = useState(false);
+  const [isShowDetail, setIsShowDetail] = useState(false);
+  const [billDetailData, setBillDetailData] = useState({
+    billInfo: {},
+    ownerInfo: {},
+    infoOfAllMember: [],
+  });
+  const [isShowBillPayments, setIsShowBillPayments] = useState(false);
+  const [billPaymentsInfo, setBillPaymentsInfo] = useState();
 
   const dispatch = useDispatch();
-  const childRef = useRef();
   const history = useHistory();
 
   const isMemberDataSend = useSelector((state) => state.data.isMemberDataSend);
@@ -89,7 +99,6 @@ const BillManagement = () => {
     }
     if (userInfo.userID !== "") {
       if (relatedBills[0] && relatedBills[0].empty) {
-        console.log("1");
         getRelatedBills(userInfo.userID, dispatch);
       } else {
         const tempData = [];
@@ -97,11 +106,13 @@ const BillManagement = () => {
           tempData.push({
             id: item.id,
             billName: item.billName,
+            ownerID: item.ownerID,
             createdDate: item.createdDate,
             total: item.total,
             left: item.left,
             yourPart: userInfoEachBill[index].yourPart,
-            isPaid: userInfoEachBill[index].isUserPaid,
+            isUserPaid: userInfoEachBill[index].isUserPaid,
+            billIsPaid: item.left === 0,
           });
         });
         setViewBills([...tempData]);
@@ -152,12 +163,14 @@ const BillManagement = () => {
   const filterBills = (filterType, sortType) => {
     console.log(filterType);
     let viewData = [...currentbills];
-    if (filterType === "Paid") {
-      console.log("PAID");
-      viewData = viewData.filter((el) => el.isPaid === true);
-    } else if (filterType === "Unpaid") {
-      console.log("UNPAID");
-      viewData = viewData.filter((el) => el.isPaid === false);
+    if (filterType === "UserPaid") {
+      viewData = viewData.filter((el) => el.isUserPaid === true);
+    } else if (filterType === "UserUnpaid") {
+      viewData = viewData.filter((el) => el.isUserPaid === false);
+    } else if (filterType === "PaidBill") {
+      viewData = viewData.filter((el) => el.billIsPaid === true);
+    } else if (filterType === "UnpaidBill") {
+      viewData = viewData.filter((el) => el.billIsPaid === false);
     }
     sortBills(sortType, viewData);
   };
@@ -168,6 +181,29 @@ const BillManagement = () => {
 
   const closeCreateBillPopup = () => {
     setIsCreatingBill(false);
+  };
+
+  const openBillDetailPopup = (billInfo, ownerInfo, infoOfAllMember) => {
+    setBillDetailData({ billInfo, ownerInfo, infoOfAllMember });
+    setIsShowDetail(true);
+  };
+
+  const closeBillDetailPopup = () => {
+    setIsShowDetail(false);
+  };
+
+  const openBillPaymentsPopup = (paymentInfo) => {
+    setBillPaymentsInfo(paymentInfo);
+    setIsShowBillPayments(true);
+  };
+
+  const backToBillDetail = () => {
+    setIsShowBillPayments(false);
+  };
+
+  const closeBillPaymentsPopup = () => {
+    setIsShowBillPayments(false);
+    setIsShowDetail(false);
   };
 
   return (
@@ -186,7 +222,8 @@ const BillManagement = () => {
           <ListBill
             bills={viewBills}
             userInfoEachBill={userInfoEachBill}
-            ref={childRef}
+            ownerOfEachBill={ownerOfEachBill}
+            openBillDetailPopup={openBillDetailPopup}
           />
         </Fragment>
       )}
@@ -194,6 +231,22 @@ const BillManagement = () => {
         <CreateBill
           listUserInBill={listUserInBill}
           onClose={closeCreateBillPopup}
+        />
+      )}
+      {isMemberDataSend && allBillAreSend && isShowDetail && (
+        <BillDetail
+          billDetailData={billDetailData}
+          loginUserIsOwner={userInfo.userID === billDetailData.ownerInfo.userID}
+          onClose={closeBillDetailPopup}
+          onOpenBillPayments={openBillPaymentsPopup}
+          isHidden={isShowBillPayments}
+        />
+      )}
+      {isMemberDataSend && allBillAreSend && isShowBillPayments && (
+        <UserPaymentMethods
+          onClose={closeBillPaymentsPopup}
+          backToDetail={backToBillDetail}
+          billPaymentsInfo={billPaymentsInfo}
         />
       )}
     </Fragment>

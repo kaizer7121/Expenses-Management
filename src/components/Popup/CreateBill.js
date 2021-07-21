@@ -33,8 +33,9 @@ const CreateBill = (props) => {
   const [amountIsChanging, setAmountIsChanging] = useState(false);
   const [userIDIsModify, setUserIDIsModify] = useState([]);
   const [isOwnerParticipate, setIsOwnerParticipate] = useState(false);
-
+  console.log(isOwnerParticipate);
   const userInfo = useSelector((state) => state.auth);
+  const allUserInfo = useSelector((state) => state.data.allUserInfo);
   const dispatch = useDispatch();
 
   const handleDayChange = (day) => {
@@ -129,10 +130,10 @@ const CreateBill = (props) => {
           const tempUser = prevValue[index];
           prevValue[index] = {
             ...tempUser,
-            percent: (100 / tempNumberOfParticipant).toFixed(4),
+            percent: (100 / tempNumberOfParticipant),
             monney:
               (billInformation.amount *
-                (100 / tempNumberOfParticipant).toFixed(4)) /
+                (100 / tempNumberOfParticipant)) /
               100,
           };
         }
@@ -196,7 +197,7 @@ const CreateBill = (props) => {
               const newPercent = (
                 leftPercent /
                 (numberOfParticipant - tempUserIDModify.length)
-              ).toFixed(4);
+              );
               prevValue[index] = {
                 ...tempUser,
                 percent: newPercent,
@@ -278,7 +279,9 @@ const CreateBill = (props) => {
           }
           if (!isOwnerParticipate || member.id !== ownerInfo.id) {
             addUserDebtToStore(member.id, member.monney, dispatch);
-            const memberInfo = getSingleDataFromFireStore("Users", member.id);
+            const memberInfo = allUserInfo.find(
+              (el) => el.userID === member.id
+            );
             updateDataToFireStore("Users", member.id, {
               debt: memberInfo.debt + member.monney,
             });
@@ -303,7 +306,7 @@ const CreateBill = (props) => {
     <Fragment>
       <Backdrop />
       <div
-        className={`${classes.modal} p-4 overflow-auto max-h-full md:p-8 lg:p-10`}
+        className={`${classes.modal} p-4 overflow-auto max-h-85% md:p-8 lg:p-10`}
       >
         <div className="w-full mb-8 ">
           <div className="mb-2 font-semibold text-2xl sm:text-3xl lg:text-4xl">
@@ -398,19 +401,19 @@ const CreateBill = (props) => {
           <table className="table-fixed border-collapse text-center sm:mt-6 ">
             <thead>
               <tr>
-                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-4 md:pb-8 md:text-xl md:w-4/12">
+                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-3 md:pb-6 md:text-xl md:w-4/12">
                   <div>Name</div>
                 </th>
-                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-4 md:pb-8 md:text-xl md:w-3/12">
+                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-3 md:pb-6 md:text-xl md:w-3/12">
                   <div>Phone</div>
                 </th>
-                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-4 md:pb-8 md:text-xl md:w-2/12">
+                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-3 md:pb-6 md:text-xl md:w-2/12">
                   <div>Money</div>
                 </th>
-                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-4 md:pb-8 md:text-xl md:w-2/12">
+                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-3 md:pb-6 md:text-xl md:w-2/12">
                   <div>Percent</div>
                 </th>
-                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-4 md:pb-8 md:text-xl md:w-1/12">
+                <th className="border-b border-black text-sm w-screen pb-2 sm:text-lg sm:pb-3 md:pb-6 md:text-xl md:w-1/12">
                   <div>Select</div>
                 </th>
               </tr>
@@ -418,19 +421,19 @@ const CreateBill = (props) => {
             <tbody>
               {listMember.map((el) => (
                 <tr key={el.id}>
-                  <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-6">
+                  <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-4">
                     {el.name}
                   </td>
-                  <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-6">
+                  <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-4">
                     {deconvertPhoneNumber(el.phone)}
                   </td>
-                  <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-6">
+                  <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-4">
                     {el.monney.toLocaleString("it-IT", {
                       style: "currency",
                       currency: "VND",
                     })}
                   </td>
-                  <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-6">
+                  <td className="border-b border-black text-xs sm:text-lg md:text-xl py-2 lg:py-4">
                     <input
                       id={el.id}
                       className="w-8/12 md:w-full text-center appearance-none bg-transparent leading-tight focus:outline-none"

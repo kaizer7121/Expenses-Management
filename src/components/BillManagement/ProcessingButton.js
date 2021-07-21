@@ -113,20 +113,38 @@ const ProcessingButton = (props) => {
         All
       </div>
       <div
-        id="Paid"
-        className={`cursor-pointer ${filterType === "Paid" && "text-blue-600"}`}
+        id="UserPaid"
+        className={`cursor-pointer ${filterType === "UserPaid" && "text-blue-600"}`}
         onClick={filterHandler}
       >
-        Paid
-      </div>
+        You paid
+      </div>      
       <div
-        id="Unpaid"
+        id="UserUnpaid"
         className={`cursor-pointer ${
-          filterType === "Unpaid" && "text-blue-600"
+          filterType === "UserUnpaid" && "text-blue-600"
         }`}
         onClick={filterHandler}
       >
-        Unpaid
+        You unpaid
+      </div>
+      <div
+        id="PaidBill"
+        className={`cursor-pointer ${
+          filterType === "PaidBill" && "text-blue-600"
+        }`}
+        onClick={filterHandler}
+      >
+        Paid Bill 
+      </div>
+      <div
+        id="UnpaidBill"
+        className={`cursor-pointer ${
+          filterType === "UnpaidBill" && "text-blue-600"
+        }`}
+        onClick={filterHandler}
+      >
+        Unpaid Bill
       </div>
     </div>
   );

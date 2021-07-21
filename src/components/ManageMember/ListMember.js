@@ -7,6 +7,7 @@ import {
   deconvertPhoneNumber,
   randomString,
   addMemberInStore,
+  deleteSingleMemberInListInStore,
 } from "../../action/Action";
 import { db } from "../../Firebase";
 
@@ -29,13 +30,14 @@ const ManageMember = forwardRef((props, ref) => {
   const loginUserInfo = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
-
+  console.log(listUser);
   useImperativeHandle(ref, () => ({
     addMemberToList(selectedUser) {
       setUsersInfo((prevValue) => [...prevValue, selectedUser]);
       const newUserInList = {
         id: randomString(20),
-        userID: db.collection("Users").doc(selectedUser.userID),
+        uid: selectedUser.userID,
+        newData: true,
       };
       setListUser((prevValue) => [...prevValue, newUserInList]);
       setArrayIsChange(true);
@@ -53,13 +55,15 @@ const ManageMember = forwardRef((props, ref) => {
       });
     } else {
       setListUser((prevValue) => {
-        idDeleted = prevValue[selectedIndex].id;
-        prevValue.splice(selectedIndex, 1);
-        return [...prevValue];
+        const tempData = [...prevValue];
+        idDeleted = tempData[selectedIndex].id;
+        tempData.splice(selectedIndex, 1);
+        return [...tempData];
       });
       setUsersInfo((prevValue) => {
-        prevValue.splice(selectedIndex, 1);
-        return [...prevValue];
+        const tempData = [...prevValue];
+        tempData.splice(selectedIndex, 1);
+        return [...tempData];
       });
 
       setDeleteUserID((prevValue) => {
@@ -95,20 +99,26 @@ const ManageMember = forwardRef((props, ref) => {
   const saveDataHandler = () => {
     if (arrayIsChange) {
       setBackupArray(usersInfo);
-      console.log("listUser:--------------");
-      console.log(listUser);
       deleteUsersID.map((el) => {
+        deleteSingleMemberInListInStore(el, dispatch);
         return deleteDataInFireStore("ListUser", el);
       });
       const reduxData = [];
-      listUser.map((el) => {
-        const { id, userID } = el;
-        if (userID) {
-          const uid = userID.path.split("/")[1];
+      listUser.forEach((el, index) => {
+        const { id, uid, newData } = el;
+        if (newData) {
           reduxData.push({ id, uid });
-          return updateDataToFireStore("ListUser", el.id, el);
+          updateDataToFireStore("ListUser", el.id, {
+            id,
+            userID: db.collection("Users").doc(uid),
+          });
+          setListUser((prevValue) => {
+            prevValue[index] = { id, uid };
+            return prevValue;
+          });
         }
       });
+      console.log(reduxData);
       addMemberInStore(reduxData, usersInfo, dispatch);
     }
     setNotification({
@@ -179,14 +189,10 @@ const ManageMember = forwardRef((props, ref) => {
           {loginUserInfo.role === "Admin" && (
             <tr>
               <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
-                <p className="text-gray-500 text-center w-full">
-                  Name
-                </p>
+                <p className="text-gray-500 text-center w-full">Name</p>
               </td>
               <td className="text-xs sm:text-lg md:text-xl py-2 lg:py-8">
-                <p className="text-gray-500 text-center w-full">
-                  Phone
-                </p>
+                <p className="text-gray-500 text-center w-full">Phone</p>
               </td>
               <td className="text-gray-500 text-sm sm:text-lg md:text-xl py-2 lg:py-8">
                 (0 VND)
@@ -209,7 +215,7 @@ const ManageMember = forwardRef((props, ref) => {
             notification.type === "Warning"
               ? "text-red-700 bg-red-100 "
               : "text-green-700 bg-green-100 "
-          }rounded-lg`}
+          }`}
         >
           <p className="font-medium pl-2 text-sm sm:text-base md:text-lg lg:pl-8 xl:text-xl">
             {notification.message}
