@@ -1,15 +1,17 @@
 .modal {
   position: fixed;
-  top: 5vh;
+  top: 10vh;
   /* left: 5%; */
   width: 100%;
   background-color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   z-index: 30;
+  animation: slide-down 300ms ease-out forwards;
 }
 
 @media (min-width: 768px) {
   .modal {
+    top: 8vh;
     width: 40rem;
     left: calc(50% - 20rem);
   }
@@ -17,6 +19,7 @@
 
 @media (min-width: 1024px) {
   .modal {
+    top: 6vh;
     width: 48rem;
     left: calc(50% - 25rem);
   }
@@ -24,17 +27,29 @@
 
 @media (min-width: 1280px) {
   .modal {
+    top: 5vh;
     width: 45rem;
     left: calc(50% - 22rem);
   }
 }
 
 @media (min-width: 1536px) {
-    .modal {
-      width: 43rem;
-      left: calc(50% - 22rem);
-    }
+  .modal {
+    width: 43rem;
+    left: calc(50% - 22rem);
   }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-3rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .save_button {
   background-color: #233e8b;

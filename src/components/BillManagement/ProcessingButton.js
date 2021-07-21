@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import classes from "./ProcessingButton.module.css";
 
 const ProcessingButton = (props) => {
@@ -8,6 +9,8 @@ const ProcessingButton = (props) => {
     sortTotalType: 0,
   });
   const [filterType, setFilterType] = useState("All");
+
+  const userInfo = useSelector((state) => state.auth);
 
   const openSortOption = () => {
     if (action === "Sort") {
@@ -49,6 +52,10 @@ const ProcessingButton = (props) => {
     const type = event.target.id;
     setFilterType(type);
     props.onFilter(type, sortType);
+  };
+
+  const createBillHandler = () => {
+    props.onOpen();
   };
 
   const sortOption = (
@@ -106,20 +113,38 @@ const ProcessingButton = (props) => {
         All
       </div>
       <div
-        id="Paid"
-        className={`cursor-pointer ${filterType === "Paid" && "text-blue-600"}`}
+        id="UserPaid"
+        className={`cursor-pointer ${filterType === "UserPaid" && "text-blue-600"}`}
         onClick={filterHandler}
       >
-        Paid
-      </div>
+        You paid
+      </div>      
       <div
-        id="Unpaid"
+        id="UserUnpaid"
         className={`cursor-pointer ${
-          filterType === "Unpaid" && "text-blue-600"
+          filterType === "UserUnpaid" && "text-blue-600"
         }`}
         onClick={filterHandler}
       >
-        Unpaid
+        You unpaid
+      </div>
+      <div
+        id="PaidBill"
+        className={`cursor-pointer ${
+          filterType === "PaidBill" && "text-blue-600"
+        }`}
+        onClick={filterHandler}
+      >
+        Paid Bill 
+      </div>
+      <div
+        id="UnpaidBill"
+        className={`cursor-pointer ${
+          filterType === "UnpaidBill" && "text-blue-600"
+        }`}
+        onClick={filterHandler}
+      >
+        Unpaid Bill
       </div>
     </div>
   );
@@ -137,7 +162,7 @@ const ProcessingButton = (props) => {
         </button>
         <button
           className={`${classes.add_bill_button} px-4 font-semibold rounded-lg py-1 text-lg md:text-base lg:text-xl xl:text-2xl`}
-          // onClick={addHandler}
+          onClick={createBillHandler}
         >
           Create a bill
         </button>
@@ -152,7 +177,11 @@ const ProcessingButton = (props) => {
       {action === "Filter" && filterOption}
       <hr></hr>
       <div className={`text-right ${classes.total_price} font-semibold`}>
-        Total left : 100.000 VND
+        Total left :{" "}
+        {userInfo.debt.toLocaleString("it-IT", {
+          style: "currency",
+          currency: "VND",
+        })}
       </div>
     </div>
   );

@@ -3,17 +3,12 @@ import { createSlice } from "@reduxjs/toolkit";
 const dataSlice = createSlice({
   name: "data",
   initialState: {
-    paymentMethods: [],
     memberInList: [],
     memberInfoInList: [],
     allUserInfo: [],
     isMemberDataSend: false,
   },
   reducers: {
-    getPaymentMethodsFromFireStore(state, action) {
-      const paymentMethods = action.payload;
-      state.paymentMethods = paymentMethods;
-    },
     updateMemberFromFireStore(state, action) {
       const { memberInList, memberInfoInList } = action.payload;
       state.memberInList = memberInList;
@@ -32,7 +27,6 @@ const dataSlice = createSlice({
     deleleData(state) {
       state.memberInList = [];
       state.memberInfoInList = [];
-      state.paymentMethods = [];
       state.allUserInfo = [];
       state.isMemberDataSend = false;
     },
@@ -44,18 +38,22 @@ const dataSlice = createSlice({
       tempData[selectedIndex] = { ...oldObject, name: newName };
       state.memberInfoInList = [...tempData];
     },
-
-    addPaymentMethods(state, action) {
-      const newPaymentMethods = action.payload;
-      state.paymentMethods = [...state.paymentMethods, ...newPaymentMethods];
+    addDebtOfUser(state, action) {
+      const { userID, debt } = action.payload;
+      let tempData = [...state.memberInfoInList];
+      const selectedIndex = tempData.findIndex((el) => el.userID === userID);
+      const oldObject = tempData[selectedIndex];
+      const oldDebt = state.memberInfoInList[selectedIndex].debt;
+      tempData[selectedIndex] = { ...oldObject, debt: oldDebt + debt };
+      state.memberInfoInList = [...tempData];
     },
-    deletePaymentMethods(state, action) {
-      const deletedPaymentMethods = action.payload;
-      let tempData = [...state.paymentMethods];
-      tempData = tempData.filter(
-        (el) => !deletedPaymentMethods.find((delEl) => el.id === delEl.id)
-      );
-      state.paymentMethods = [...tempData];
+    deleteSingleMemberInfoInList(state, action) {
+      const id = action.payload;
+
+      const tempData = state.memberInList.filter((el) => {
+        return el.id !== id;
+      });
+      state.memberInList = [...tempData];
     },
   },
 });

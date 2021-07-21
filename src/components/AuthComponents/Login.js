@@ -19,7 +19,7 @@ const Login = () => {
   const [isSendCode, setIsSendCode] = useState(false);
   const [lockSend, setLockSend] = useState(false);
   const [lockSubmit, setLockSubmit] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+  const [countdown, setCountdown] = useState();
 
   const dispatch = useDispatch();
 
@@ -62,14 +62,6 @@ const Login = () => {
   const sendCodeThroughSMS = () => {
     setLockSend(true);
     setCountdown(30);
-    // downloadTimer = setInterval(function () {
-    //   console.log(countdown);
-    //   if (countdown <= 0) {
-    //     setLockSend(false);
-    //     clearInterval(downloadTimer);
-    //   }
-    //   setCountdown(countdown - 1);
-    // }, 1000);
 
     setUpRecaptcha();
     const userPhoneNumber = convertPhoneNumber(phoneNumber);
@@ -139,6 +131,7 @@ const Login = () => {
           Swal.fire("Sign in successfully", "", "success").then(() => {
             const expirationTime = user.h.c;
             const token = user.Aa;
+            setCountdown(0);
             dispatch(authAction.login(userData));
             dispatch(tokenAction.addToken({ token, expirationTime }));
           });

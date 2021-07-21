@@ -1,13 +1,17 @@
 import Auth from "./pages/Auth";
 import Members from "./pages/Members";
 import ProfileUser from "./pages/ProfileUser";
-import { Switch, Route, Redirect, useHistory } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, Fragment } from "react";
 import { authAction } from "./store/authSlice";
 import { tokenAction } from "./store/tokenSlice";
 import firebase from "firebase";
-import { getPaymentMethods, getSingleDataFromFireStore } from "./action/Action";
+import {
+  getPaymentMethods,
+  getRelatedBills,
+  getSingleDataFromFireStore,
+} from "./action/Action";
 import Test from "./components/test/test";
 import { dataAction } from "./store/dataSlice";
 import Bills from "./pages/Bills";
@@ -32,7 +36,7 @@ function App() {
           const token = user.Aa;
           const userID = user.uid;
           const userInfo = await getSingleDataFromFireStore("Users", userID);
-          getPaymentMethods(userID, dispatch);
+          await getPaymentMethods(userID, dispatch);
           dispatch(authAction.login(userInfo));
           dispatch(tokenAction.addToken({ token, expirationTime }));
         } else {
@@ -46,7 +50,7 @@ function App() {
     <Fragment>
       <Switch>
         <Route path="/" exact>
-          <Bills />
+          {token ? <Bills /> : <Redirect to="/SignIn" />}
         </Route>
         <Route path="/SignIn">{token ? <Redirect to="/" /> : <Auth />}</Route>
         <Route path="/profile">

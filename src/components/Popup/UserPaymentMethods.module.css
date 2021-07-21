@@ -1,0 +1,103 @@
+.modal {
+  position: fixed;
+  top: 5vh;
+  /* left: 5%; */
+  width: 100%;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 30;
+  animation: slide 250ms ease-out forwards;
+}
+
+@media (min-width: 640px) {
+  .modal {
+    top: 5vh;
+    width: 30rem;
+    left: calc(50% - 15rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .modal {
+    top: 6vh;
+    width: 34rem;
+    left: calc(50% - 17rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .modal {
+    top: 6vh;
+    width: 36rem;
+    left: calc(50% - 18rem);
+  }
+}
+
+@media (min-width: 1280px) {
+  .modal {
+    top: 7vh;
+    width: 37rem;
+    left: calc(50% - 19rem);
+  }
+}
+
+@media (min-width: 1536px) {
+  .modal {
+    top: 7vh;
+    width: 38rem;
+    left: calc(50% - 19rem);
+  }
+}
+
+@keyframes slide {
+  from {
+    opacity: 0;
+    transform: translateX(-3rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.background1EAE98 {
+  background-color: #1eae98;
+}
+
+.buttonF0EBCC {
+  background-color: #f0ebcc;
+}
+
+.buttonF0EBCC:hover {
+  background-color: #c1bc9e;
+}
+
+.backgroundF0EBCC {
+  background-color: #f0ebcc;
+}
+
+.button2563EB {
+  background-color: #2563eb;
+}
+
+.button2563EB:hover {
+  background-color: #1e3a8a;
+}
+
+.textBlack {
+  color: black;
+}
+
+.textWhite {
+  color: white;
+}
+
+.back_button {
+  background-color: #233e8b;
+  color: white;
+}
+
+.back_button:hover {
+  background-color: #3259c5;
+  color: white;
+}

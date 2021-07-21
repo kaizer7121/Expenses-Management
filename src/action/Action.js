@@ -1,7 +1,8 @@
-import { useDispatch, useSelector } from "react-redux";
 import { db } from "../Firebase";
 import { authAction } from "../store/authSlice";
 import { dataAction } from "../store/dataSlice";
+import firebase from "firebase/app";
+import "firebase/firestore";
 
 export const randomString = (length) => {
   var result = "";
@@ -36,6 +37,22 @@ export const deconvertPhoneNumber = (convertedPhone) => {
   return deconvertedPhoneNumber;
 };
 
+export const getMonthAndYearOfDate = (date) => {
+  const getDate = new Date(date);
+  const month = getDate.getMonth() + 1;
+  const year = getDate.getFullYear();
+  const result = `${month}/${year}`;
+  return result;
+};
+
+export const getDayMonthAndYearOfDate = (date) => {
+  const getDate = new Date(date);
+  const day = getDate.getDate();
+  const month = getDate.getMonth() + 1;
+  const year = getDate.getFullYear();
+  const result = `${day}/${month}/${year}`;
+  return result;
+};
 // ============================================================================
 
 export const getDataFromFireStore = async (collectionName) => {
@@ -141,6 +158,17 @@ export const findRefDataFromFireStore = async (
   }
 };
 
+export const increaseDebtOfUserInFireStore = (userID, debt) => {
+  console.log("Updating debt");
+  db.collection("Users")
+    .doc(userID)
+    .update({
+      debt: firebase.firestore.FieldValue.increment(debt),
+    })
+    .then(() => console.log("Update debt!"))
+    .catch((err) => console.log(err));
+};
+
 // =========================================================
 export const getPaymentMethods = async (userID, dispatch) => {
   const paymentMethods = await findRefDataFromFireStore(
@@ -157,7 +185,7 @@ export const getPaymentMethods = async (userID, dispatch) => {
     return newPayment.push({ id, note, number, type, userID });
   });
 
-  dispatch(dataAction.getPaymentMethodsFromFireStore(newPayment));
+  dispatch(authAction.getPaymentMethodsFromFireStore(newPayment));
 };
 
 export const getMemberDatas = async (dispatch) => {
@@ -202,6 +230,10 @@ export const getMemberDatas = async (dispatch) => {
   });
 };
 
+export const deleteSingleMemberInListInStore = (id, dispatch) => {
+  dispatch(dataAction.deleteSingleMemberInfoInList(id));
+};
+
 export const getAllUserInfo = async (dispatch) => {
   const allUser = await getDataFromFireStore("Users");
   dispatch(dataAction.getAllUserInfo(allUser));
@@ -220,11 +252,11 @@ export const changeNameOfUser = (userInfo, newName, dispatch) => {
 };
 
 export const addNewPaymentMethods = (paymentMethods, dispatch) => {
-  dispatch(dataAction.addPaymentMethods(paymentMethods));
+  dispatch(authAction.addPaymentMethods(paymentMethods));
 };
 
 export const deletePaymentMethods = (paymentMethods, dispatch) => {
-  dispatch(dataAction.deletePaymentMethods(paymentMethods));
+  dispatch(authAction.deletePaymentMethods(paymentMethods));
 };
 
 export const updateMemberInStore = (
@@ -237,6 +269,112 @@ export const updateMemberInStore = (
   );
 };
 
-export const addMemberInStore = (newMembersInList, memberInfoInList, dispatch) => {
+export const addMemberInStore = (
+  newMembersInList,
+  memberInfoInList,
+  dispatch
+) => {
   dispatch(dataAction.addMemberToStore({ newMembersInList, memberInfoInList }));
+};
+
+export const addUserDebtToStore = (userID, debt, dispatch) => {
+  dispatch(dataAction.addDebtOfUser({ userID, debt }));
+};
+
+export const addUserInfoEachBillToStore = (newInfo, dispatch) => {
+  const { id, bill, isPaid, monney, percent, user } = newInfo;
+  const userID = user.path.split("/")[1];
+  const billID = bill.path.split("/")[1];
+  dispatch(
+    authAction.addUserInfoEachBill({
+      id,
+      billID,
+      isUserPaid: isPaid,
+      yourPart: monney,
+      percent,
+      userID,
+    })
+  );
+};
+
+export const addRelatedBillToStore = (ownBillInfo, dispatch) => {
+  const { id, billName, owner, createdDate, total, left, isBillPaid } =
+    ownBillInfo;
+  const ownerID = owner.path.split("/")[1];
+  dispatch(
+    authAction.addRelatedBill({
+      id,
+      billName,
+      ownerID,
+      createdDate,
+      total,
+      left,
+      isBillPaid,
+    })
+  );
+};
+
+export const getRelatedBills = async (userID, dispatch) => {
+  const listIDInUserOfBillRaw = await findDataFromFireStore(
+    "ListUserOfBill",
+    "user",
+    "==",
+    db.collection("Users").doc(userID)
+  );
+  const listIDInUserOfBill = [];
+  listIDInUserOfBillRaw.map((el) => {
+    const { id, bill, isPaid, monney, percent, user } = el;
+    const userID = user.path.split("/")[1];
+    const billID = bill.path.split("/")[1];
+    return listIDInUserOfBill.push({
+      id,
+      billID,
+      isUserPaid: isPaid,
+      yourPart: monney,
+      percent,
+      userID,
+    });
+  });
+  dispatch(authAction.getUserInfoEachBill(listIDInUserOfBill));
+  const relatedBillsRaw = [];
+  Promise.all(
+    listIDInUserOfBill.map(async (item) => {
+      const relatedBill = await findDataFromFireStore(
+        "ListBill",
+        "id",
+        "==",
+        item.billID
+      );
+      relatedBillsRaw.push(relatedBill);
+    })
+  ).then(() => {
+    const relatedBills = [];
+    relatedBillsRaw.map((el) => {
+      const { id, billName, owner, createdDate, total, left, isBillPaid } =
+        el[0];
+      const ownerID = owner.path.split("/")[1];
+      return relatedBills.push({
+        id,
+        billName,
+        ownerID,
+        createdDate,
+        total,
+        left,
+        isBillPaid,
+      });
+    });
+    dispatch(authAction.getRelatedBillsFromFireStore(relatedBills));
+  });
+};
+
+export const editRelatedBillInStore = (billID, newBillInfo, dispatch) => {
+  dispatch(authAction.editRelatedBill({ billID, newBillInfo }));
+};
+
+export const editUserInfoEachBillInStore = (id, newInfo, dispatch) => {
+  dispatch(authAction.editUserInfoEachBill({ id, newInfo }));
+};
+
+export const editDebtOfLoginUserInStore = (debt, dispatch) => {
+  dispatch(authAction.editDebt(debt));
 };
