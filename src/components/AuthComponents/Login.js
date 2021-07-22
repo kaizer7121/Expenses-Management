@@ -229,6 +229,11 @@ const Login = () => {
                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 cursor-wait"
                   onClick={confirmCodeAndSignIn}
                 >
+                  <img
+                    src="images/Rolling-1s-51px.png"
+                    alt="loading"
+                    className="animate-spin h-5 w-5 mr-3 bg-opacity-0	"
+                  />
                   Sign in
                 </button>
               </div>

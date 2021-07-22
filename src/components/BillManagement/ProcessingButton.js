@@ -9,6 +9,7 @@ const ProcessingButton = (props) => {
     sortTotalType: 0,
   });
   const [filterType, setFilterType] = useState("All");
+  const [optionFilter, setOptionFilter] = useState("");
 
   const userInfo = useSelector((state) => state.auth);
 
@@ -48,8 +49,20 @@ const ProcessingButton = (props) => {
     props.onSort(sortData);
   };
 
+  const chooseOptionFilter = (event) => {
+    const option = event.target.id;
+    if (optionFilter === option) {
+      setOptionFilter("");
+    } else {
+      setOptionFilter(option);
+    }
+  };
+
   const filterHandler = (event) => {
     const type = event.target.id;
+    if (type === "All") {
+      setOptionFilter("");
+    }
     setFilterType(type);
     props.onFilter(type, sortType);
   };
@@ -104,48 +117,89 @@ const ProcessingButton = (props) => {
   );
 
   const filterOption = (
-    <div className="flex justify-around font-semibold mt-4">
-      <div
-        id="All"
-        className={`cursor-pointer ${filterType === "All" && "text-blue-600"}`}
-        onClick={filterHandler}
-      >
-        All
+    <div>
+      <div className="flex justify-around font-semibold mt-4">
+        <div
+          id="All"
+          className={`cursor-pointer ${
+            filterType === "All" && "text-blue-600"
+          }`}
+          onClick={filterHandler}
+        >
+          All
+        </div>
+        <div
+          id="User"
+          className={`cursor-pointer ${
+            optionFilter === "User" && "text-green-600"
+          }`}
+          onClick={chooseOptionFilter}
+        >
+          User
+        </div>
+        <div
+          id="Bill"
+          className={`cursor-pointer ${
+            optionFilter === "Bill" && "text-green-600"
+          }`}
+          onClick={chooseOptionFilter}
+        >
+          Bill
+        </div>
       </div>
-      <div
-        id="UserPaid"
-        className={`cursor-pointer ${filterType === "UserPaid" && "text-blue-600"}`}
-        onClick={filterHandler}
-      >
-        You paid
-      </div>      
-      <div
-        id="UserUnpaid"
-        className={`cursor-pointer ${
-          filterType === "UserUnpaid" && "text-blue-600"
-        }`}
-        onClick={filterHandler}
-      >
-        You unpaid
-      </div>
-      <div
-        id="PaidBill"
-        className={`cursor-pointer ${
-          filterType === "PaidBill" && "text-blue-600"
-        }`}
-        onClick={filterHandler}
-      >
-        Paid Bill 
-      </div>
-      <div
-        id="UnpaidBill"
-        className={`cursor-pointer ${
-          filterType === "UnpaidBill" && "text-blue-600"
-        }`}
-        onClick={filterHandler}
-      >
-        Unpaid Bill
-      </div>
+      {optionFilter === "User" && (
+        <div className="flex justify-around font-semibold mt-4">
+          <div
+            id="UserPaid"
+            className={`cursor-pointer ${
+              filterType === "UserPaid" && "text-blue-600"
+            }`}
+            onClick={filterHandler}
+          >
+            User Paid
+          </div>
+          <div
+            id="UserUnpaid"
+            className={`cursor-pointer ${
+              filterType === "UserUnpaid" && "text-blue-600"
+            }`}
+            onClick={filterHandler}
+          >
+            User Unpaid
+          </div>
+        </div>
+      )}
+      {optionFilter === "Bill" && (
+        <div className="flex justify-around font-semibold mt-4">
+          <div
+            id="OwnBill"
+            className={`cursor-pointer ${
+              filterType === "OwnBill" && "text-blue-600"
+            }`}
+            onClick={filterHandler}
+          >
+            Own Bill
+          </div>
+          <div
+            id="PaidBill"
+            className={`cursor-pointer ${
+              filterType === "PaidBill" && "text-blue-600"
+            }`}
+            onClick={filterHandler}
+          >
+            Paid Bill
+          </div>
+          <div
+            id="UnpaidBill"
+            className={`cursor-pointer ${
+              filterType === "UnpaidBill" && "text-blue-600"
+            }`}
+            onClick={filterHandler}
+          >
+            Unpaid Bill
+          </div>
+        </div>
+      )}
     </div>
   );
 

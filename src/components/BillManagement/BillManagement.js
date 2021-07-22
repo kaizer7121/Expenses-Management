@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import {
@@ -12,49 +12,6 @@ import CreateBill from "../Popup/CreateBill";
 import ListBill from "./ListBill";
 import ProcessingButton from "./ProcessingButton";
 import UserPaymentMethods from "../Popup/UserPaymentMethods";
-
-const DUMMY_DATA = [
-  {
-    billName: "Electricity bill",
-    createdDate: "7/2021",
-    total: 500000,
-    left: 400000,
-    yourPart: 100000,
-    isPaid: true,
-  },
-  {
-    billName: "Water bill",
-    createdDate: "6/2021",
-    total: 250000,
-    left: 200000,
-    yourPart: 120000,
-    isPaid: false,
-  },
-  {
-    billName: "Wifi bill",
-    createdDate: "4/2021",
-    total: 100000,
-    left: 100000,
-    yourPart: 50000,
-    isPaid: false,
-  },
-  {
-    billName: "Wifi bill",
-    createdDate: "4/2021",
-    total: 100000,
-    left: 100000,
-    yourPart: 50000,
-    isPaid: false,
-  },
-  {
-    billName: "Electricity bill",
-    createdDate: "7/2021",
-    total: 500000,
-    left: 400000,
-    yourPart: 100000,
-    isPaid: true,
-  },
-];
 
 const BillManagement = () => {
   const relatedBills = useSelector((state) => state.auth.relatedBills);
@@ -72,6 +29,7 @@ const BillManagement = () => {
   });
   const [isShowBillPayments, setIsShowBillPayments] = useState(false);
   const [billPaymentsInfo, setBillPaymentsInfo] = useState();
+  const [editData, setEditData] = useState({});
 
   const dispatch = useDispatch();
   const history = useHistory();
@@ -79,7 +37,8 @@ const BillManagement = () => {
   const isMemberDataSend = useSelector((state) => state.data.isMemberDataSend);
   const memberInfoInList = useSelector((state) => state.data.memberInfoInList);
   const userInfo = useSelector((state) => state.auth);
-  const listUserInBill = [];
+
+  let listUserInBill = [];
   memberInfoInList.map((el) => {
     const userInBill = {
       id: el.userID,
@@ -91,6 +50,46 @@ const BillManagement = () => {
     };
     return listUserInBill.push(userInBill);
   });
+  if (
+    editData.billInfo &&
+    editData.infoOfAllMember &&
+    !editData.numberOfParticipant
+  ) {
+    let isMemberStillInList = true;
+    let numberOfParticipant = 0;
+    editData.infoOfAllMember.forEach((info) => {
+      const userID = info.userID;
+      let checkExist = false;
+      listUserInBill.forEach((userInBill, index) => {
+        if (userInBill.id === userID) {
+          listUserInBill[index] = {
+            ...userInBill,
+            select: true,
+            percent: info.percent,
+            monney: info.monney,
+          };
+          checkExist = true;
+          numberOfParticipant += 1;
+        }
+      });
+      if (!checkExist && isMemberStillInList) {
+        isMemberStillInList = false;
+      }
+    });
+    if (!isMemberStillInList) {
+      listUserInBill.forEach((userInBill, index) => {
+        if (userInBill.select) {
+          const newPercent = 100 / numberOfParticipant;
+          const total = editData.billInfo.total;
+          listUserInBill[index] = {
+            ...userInBill,
+            percent: newPercent,
+            monney: (total * newPercent) / 100,
+          };
+        }
+      });
+    }
+  }
 
   useEffect(() => {
     if (!isMemberDataSend) {
@@ -132,11 +131,8 @@ const BillManagement = () => {
     const { sortDateType, sortTotalType } = sortType;
     let copyBills = [];
     if (viewData) {
-      console.log("type full");
-      console.log(viewData);
       copyBills = [...viewData];
     } else {
-      console.log("Type lack");
       copyBills = [...viewBills];
     }
 
@@ -161,7 +157,6 @@ const BillManagement = () => {
   };
 
   const filterBills = (filterType, sortType) => {
-    console.log(filterType);
     let viewData = [...currentbills];
     if (filterType === "UserPaid") {
       viewData = viewData.filter((el) => el.isUserPaid === true);
@@ -171,16 +166,21 @@ const BillManagement = () => {
       viewData = viewData.filter((el) => el.billIsPaid === true);
     } else if (filterType === "UnpaidBill") {
       viewData = viewData.filter((el) => el.billIsPaid === false);
+    } else if (filterType === "OwnBill") {
+      viewData = viewData.filter((el) => el.ownerID === userInfo.userID);
     }
     sortBills(sortType, viewData);
   };
 
   const openCreateBillPopup = () => {
     setIsCreatingBill(true);
+    setEditData({});
   };
 
   const closeCreateBillPopup = () => {
     setIsCreatingBill(false);
+    setIsShowDetail(false);
+    setEditData({});
   };
 
   const openBillDetailPopup = (billInfo, ownerInfo, infoOfAllMember) => {
@@ -199,11 +199,17 @@ const BillManagement = () => {
 
   const backToBillDetail = () => {
     setIsShowBillPayments(false);
+    setIsCreatingBill(false);
   };
 
   const closeBillPaymentsPopup = () => {
     setIsShowBillPayments(false);
     setIsShowDetail(false);
+  };
+
+  const editBillDetail = (editData) => {
+    setIsCreatingBill(true);
+    setEditData(editData);
   };
 
   return (
@@ -231,6 +237,8 @@ const BillManagement = () => {
         <CreateBill
           listUserInBill={listUserInBill}
           onClose={closeCreateBillPopup}
+          editData={editData}
+          backToDetail={backToBillDetail}
         />
       )}
       {isMemberDataSend && allBillAreSend && isShowDetail && (
@@ -239,7 +247,8 @@ const BillManagement = () => {
           loginUserIsOwner={userInfo.userID === billDetailData.ownerInfo.userID}
           onClose={closeBillDetailPopup}
           onOpenBillPayments={openBillPaymentsPopup}
-          isHidden={isShowBillPayments}
+          isHidden={isShowBillPayments || isCreatingBill}
+          onEdit={editBillDetail}
         />
       )}
       {isMemberDataSend && allBillAreSend && isShowBillPayments && (
