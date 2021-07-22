@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addUserDebtToStore,
@@ -33,6 +33,10 @@ const BillDetail = (props) => {
 
   const dispatch = useDispatch();
 
+  console.log("billInfo");
+  console.log(billInfo);
+  console.log("infoOfAllMember");
+  console.log(infoOfAllMember);
   useEffect(() => {
     if (!isGetPaymentInfo) {
       findRefDataFromFireStore(
@@ -47,13 +51,6 @@ const BillDetail = (props) => {
       });
     }
   }, [isGetPaymentInfo, ownerInfo.userID]);
-
-  // console.log("billInfo");
-  // console.log(billInfo);
-  // console.log("ownerInfo");
-  // console.log(ownerInfo);
-  // console.log("infoOfAllMember");
-  // console.log(infoOfAllMember);
 
   const changeStatusOfPaid = (event) => {
     console.log(event.target.id);
@@ -135,6 +132,21 @@ const BillDetail = (props) => {
 
   const openBillPayments = () => {
     props.onOpenBillPayments(paymentInfo);
+  };
+
+  const editHandler = () => {
+    let isOwnerParticipate = false;
+    infoOfAllMember.forEach((item) => {
+      if (item.userID === ownerInfo.userID) {
+        isOwnerParticipate = true;
+      }
+    });
+    const editData = {
+      billInfo,
+      infoOfAllMember,
+      isOwnerParticipate,
+    };
+    props.onEdit(editData);
   };
 
   return (
@@ -243,7 +255,7 @@ const BillDetail = (props) => {
           {props.loginUserIsOwner && (
             <button
               className={`${classes.close_button} font-semibold rounded-lg w-3/12 text-lg py-2 sm:w-5/24 sm:text-xl md:py-2 md:text-base lg:text-lg xl:text-xl`}
-              // onClick={cancelHandler}
+              onClick={editHandler}
             >
               Edit
             </button>

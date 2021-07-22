@@ -1,6 +1,6 @@
 import classes from "./CreateBill.module.css";
 import Backdrop from "./Backdrop/Backdrop";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import DayPickerInput from "react-day-picker/DayPickerInput";
 import "react-day-picker/lib/style.css";
 import { formatDate, parseDate } from "react-day-picker/moment";
@@ -9,7 +9,9 @@ import {
   addUserDebtToStore,
   addUserInfoEachBillToStore,
   deconvertPhoneNumber,
-  getSingleDataFromFireStore,
+  deleteDataInFireStore,
+  editRelatedBillInStore,
+  editUserInfoEachBillInStore,
   randomString,
   updateDataToFireStore,
 } from "../../action/Action";
@@ -17,11 +19,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { db } from "../../Firebase";
 
 const CreateBill = (props) => {
+  const [type, setType] = useState(props.editData.billInfo ? "Edit" : "Create");
   const [listMember, setListMember] = useState([...props.listUserInBill]);
   const [billInformation, setBillInformation] = useState({
-    name: "",
-    date: new Date(),
-    amount: 0,
+    name: type === "Edit" ? props.editData.billInfo.billName : "",
+    date:
+      type === "Edit"
+        ? new Date(props.editData.billInfo.createdDate)
+        : new Date(),
+    amount: type === "Edit" ? props.editData.billInfo.total : 0,
   });
   const [notification, setNotification] = useState({
     dateNoti: "",
@@ -30,13 +36,36 @@ const CreateBill = (props) => {
     paticipantNoti: "",
   });
   const [numberOfParticipant, setNumberOfParticipant] = useState(0);
+  const [editNumberOfParticipant, setEditNumberOfParticipant] = useState(false);
   const [amountIsChanging, setAmountIsChanging] = useState(false);
   const [userIDIsModify, setUserIDIsModify] = useState([]);
-  const [isOwnerParticipate, setIsOwnerParticipate] = useState(false);
-  console.log(isOwnerParticipate);
+  const [isOwnerParticipate, setIsOwnerParticipate] = useState(
+    type === "Edit" ? props.editData.isOwnerParticipate : false
+  );
   const userInfo = useSelector((state) => state.auth);
   const allUserInfo = useSelector((state) => state.data.allUserInfo);
   const dispatch = useDispatch();
+  useEffect(() => {
+    if (type === "Edit" && !editNumberOfParticipant) {
+      let trueNumberOfParticipant = 0;
+      listMember.forEach((member) => {
+        if (
+          props.editData.infoOfAllMember.find(
+            (info) => info.userID === member.id
+          )
+        ) {
+          trueNumberOfParticipant += 1;
+        }
+      });
+      setEditNumberOfParticipant(true);
+      setNumberOfParticipant(trueNumberOfParticipant);
+    }
+  }, [
+    props.editData.infoOfAllMember,
+    listMember,
+    editNumberOfParticipant,
+    type,
+  ]);
 
   const handleDayChange = (day) => {
     if (day) {
@@ -107,6 +136,9 @@ const CreateBill = (props) => {
         return [...prevValue];
       });
     } else {
+      if (userInfo.userID === id) {
+        setIsOwnerParticipate(false);
+      }
       tempNumberOfParticipant--;
       setUserIDIsModify([]);
       setNumberOfParticipant((prevValue) => prevValue - 1);
@@ -130,11 +162,9 @@ const CreateBill = (props) => {
           const tempUser = prevValue[index];
           prevValue[index] = {
             ...tempUser,
-            percent: (100 / tempNumberOfParticipant),
+            percent: 100 / tempNumberOfParticipant,
             monney:
-              (billInformation.amount *
-                (100 / tempNumberOfParticipant)) /
-              100,
+              (billInformation.amount * (100 / tempNumberOfParticipant)) / 100,
           };
         }
       });
@@ -194,10 +224,8 @@ const CreateBill = (props) => {
           if (findIndex === -1) {
             if (index !== indexSelected && el.select) {
               const tempUser = prevValue[index];
-              const newPercent = (
-                leftPercent /
-                (numberOfParticipant - tempUserIDModify.length)
-              );
+              const newPercent =
+                leftPercent / (numberOfParticipant - tempUserIDModify.length);
               prevValue[index] = {
                 ...tempUser,
                 percent: newPercent,
@@ -212,7 +240,7 @@ const CreateBill = (props) => {
     }
   };
 
-  const saveHandler = () => {
+  const saveHandler = async () => {
     let dateNoti = "";
     let billNameNoti = "";
     let amountNoti = "";
@@ -237,7 +265,7 @@ const CreateBill = (props) => {
     }
     if (!checkValidate) {
       setNotification({ dateNoti, billNameNoti, amountNoti, paticipantNoti });
-    } else {
+    } else if (type === "Create") {
       let ownerInfo = {};
       if (isOwnerParticipate) {
         ownerInfo = listMember.find((el) => {
@@ -246,16 +274,17 @@ const CreateBill = (props) => {
       }
 
       const randomBillID = randomString(15);
+      const leftMonney = isOwnerParticipate
+        ? billInformation.amount - ownerInfo.monney
+        : billInformation.amount;
       const fullBillInfo = {
         id: randomBillID,
         billName: billInformation.name,
         createdDate: billInformation.date.toString(),
         owner: db.collection("Users").doc(userInfo.userID),
         total: billInformation.amount,
-        left: isOwnerParticipate
-          ? billInformation.amount - ownerInfo.monney
-          : billInformation.amount,
-        isBillPaid: false,
+        left: leftMonney,
+        isBillPaid: leftMonney === billInformation.amount,
       };
       if (isOwnerParticipate) {
         addRelatedBillToStore(fullBillInfo, dispatch);
@@ -295,11 +324,98 @@ const CreateBill = (props) => {
         paticipantNoti: "",
       });
       props.onClose();
+    } else if (type === "Edit") {
+      let ownerInfo = {};
+      if (isOwnerParticipate) {
+        ownerInfo = listMember.find((el) => {
+          return el.id === userInfo.userID;
+        });
+      }
+      const leftMonney = isOwnerParticipate
+        ? billInformation.amount - ownerInfo.monney
+        : billInformation.amount;
+      const newInfoOfBill = {
+        billName: billInformation.name,
+        createdDate: billInformation.date.toString(),
+        total: billInformation.amount,
+        left: leftMonney,
+        isBillPaid: leftMonney === billInformation.amount,
+      };
+      const billID = props.editData.billInfo.billID;
+      if (isOwnerParticipate) {
+        editRelatedBillInStore(billID, newInfoOfBill, dispatch);
+      }
+      updateDataToFireStore("ListBill", billID, newInfoOfBill);
+
+      props.editData.infoOfAllMember.forEach((info) => {
+        deleteDataInFireStore("ListUserOfBill", info.id);
+      });
+
+      listMember.forEach((member) => {
+        if (member.select) {
+          const infoOfAllMember = props.editData.infoOfAllMember;
+          const infoOfMember = infoOfAllMember.find((info) => {
+            return info.userID === member.id;
+          });
+
+          const participantID = randomString(15);
+          const participant = {
+            id: participantID,
+            user: db.collection("Users").doc(member.id),
+            bill: db.collection("ListBill").doc(billID),
+            monney: member.monney,
+            percent: member.percent,
+            isPaid:
+              isOwnerParticipate && member.id === ownerInfo.id ? true : false,
+          };
+          updateDataToFireStore("ListUserOfBill", participantID, participant);
+          if (isOwnerParticipate && member.id === ownerInfo.id) {
+            if (infoOfMember) {
+              editUserInfoEachBillInStore(
+                infoOfMember.id,
+                {
+                  id: participant.id,
+                  yourPart: participant.monney,
+                  percent: participant.percent,
+                  isUserPaid: participant.isPaid,
+                },
+                dispatch
+              );
+            } else {
+              addUserInfoEachBillToStore(participant, dispatch);
+            }
+          }
+          if (!isOwnerParticipate || member.id !== ownerInfo.id) {
+            let trueDebt = member.monney;
+            if (infoOfMember && !infoOfMember.isPaid) {
+              trueDebt -= infoOfMember.monney;
+            }
+            addUserDebtToStore(member.id, trueDebt, dispatch);
+            const memberInfo = allUserInfo.find(
+              (el) => el.userID === member.id
+            );
+            updateDataToFireStore("Users", member.id, {
+              debt: memberInfo.debt + trueDebt,
+            });
+          }
+        }
+      });
+      setNotification({
+        dateNoti: "",
+        billNameNoti: "",
+        amountNoti: "",
+        paticipantNoti: "",
+      });
+      props.onClose();
     }
   };
 
   const cancelHandler = () => {
     props.onClose();
+  };
+
+  const backToDetailHandler = () => {
+    props.backToDetail();
   };
 
   return (
@@ -397,7 +513,7 @@ const CreateBill = (props) => {
             </p>
           )}
         </div>
-        <div className="overflow-auto max-h-64 md:max-h-72 lg:max-h-80 xl:max-h-96">
+        <div className="overflow-auto max-h-64 md:max-h-72 lg:max-h-80 xl:max-h-88">
           <table className="table-fixed border-collapse text-center sm:mt-6 ">
             <thead>
               <tr>
@@ -467,9 +583,9 @@ const CreateBill = (props) => {
         <div className="flex justify-around mt-8 sm:justify-between sm:mt-12 sm:px-8">
           <button
             className={`${classes.close_button} font-semibold rounded-lg w-3/12 text-lg py-2 sm:w-5/24 sm:text-xl md:py-2 md:text-base lg:text-lg xl:text-xl`}
-            onClick={cancelHandler}
+            onClick={type === "Edit" ? backToDetailHandler : cancelHandler}
           >
-            Cancel
+            {type === "Edit" ? "Back" : "Cancel"}
           </button>
           <button
             className={`${classes.save_button} font-semibold rounded-lg w-3/12 text-lg py-2 sm:w-5/24 sm:text-xl md:py-2 md:text-base lg:text-lg xl:text-xl`}

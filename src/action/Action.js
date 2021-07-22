@@ -111,6 +111,25 @@ export const deleteDataInFireStore = (collectionName, documentName) => {
     });
 };
 
+export const deleteDataWithConditionInFireStore = async (
+  collectionName,
+  property,
+  operation,
+  object
+) => {
+  db.collection(collectionName)
+    .where(property, operation, object)
+    .get()
+    .then((data) => {
+      data.forEach((singleData) => {
+        singleData.ref.delete();
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 export const findDataFromFireStore = async (
   collectionName,
   property,
@@ -350,8 +369,7 @@ export const getRelatedBills = async (userID, dispatch) => {
   ).then(() => {
     const relatedBills = [];
     relatedBillsRaw.map((el) => {
-      const { id, billName, owner, createdDate, total, left, isBillPaid } =
-        el[0];
+      const { id, billName, owner, createdDate, total, left, isBillPaid } = el[0];
       const ownerID = owner.path.split("/")[1];
       return relatedBills.push({
         id,

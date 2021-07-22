@@ -13,8 +13,13 @@ module.exports = {
         "5/6": "83.3333%",
       },
       maxHeight: {
-        "132": "32rem",
+        84: "21rem",
+        88: "22rem",
+        132: "32rem",
         "85%": "85%",
+      },
+      colors: {
+        "coral-reef": "#C1BC9E",
       },
     },
   },

@@ -9,10 +9,19 @@ import BillDetail from "../Popup/BillDetail";
 import UserPaymentMethods from "../Popup/UserPaymentMethods";
 
 const Test = () => {
+  let circleCommonClasses = "h-2.5 w-2.5 bg-current rounded-full";
+
   return (
-    <Fragment>
-      <BillDetail />
-    </Fragment>
+    <div className="flex">
+      <button type="button" class="bg-rose-600 ..." disabled>
+        <img
+          src="images/Rolling-1s-51px.png"
+          alt="loading"
+          className="animate-spin h-5 w-5 mr-3"
+        />
+        Processing
+      </button>
+    </div>
   );
 };
 
