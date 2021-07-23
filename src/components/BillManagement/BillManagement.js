@@ -107,8 +107,12 @@ const BillManagement = () => {
             createdDate: item.createdDate,
             total: item.total,
             left: item.left,
-            yourPart: userInfoEachBill[index].yourPart,
-            isUserPaid: userInfoEachBill[index].isUserPaid,
+            yourPart: userInfoEachBill[index]
+              ? userInfoEachBill[index].yourPart
+              : "You don't need to pay",
+            isUserPaid: userInfoEachBill[index]
+              ? userInfoEachBill[index].isUserPaid
+              : false,
             billIsPaid: item.left === 0,
           });
         });
