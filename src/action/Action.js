@@ -380,7 +380,7 @@ export const getRelatedBills = async (userID, dispatch) => {
       );
       relatedBillsRaw.push(relatedBill);
     })
-  ).then(() => {
+  ).then(async () => {
     const relatedBills = [];
     relatedBillsRaw.map((el) => {
       const { id, billName, owner, createdDate, total, left, isBillPaid } =
@@ -396,6 +396,30 @@ export const getRelatedBills = async (userID, dispatch) => {
         isBillPaid,
       });
     });
+    await findDataFromFireStore(
+      "ListBill",
+      "owner",
+      "==",
+      db.collection("Users").doc(userID)
+    ).then((data) => {
+      data.map((item) => {
+        const { id, billName, owner, createdDate, total, left, isBillPaid } =
+          item;
+        const ownerID = owner.path.split("/")[1];
+
+        return relatedBills.push({
+          id,
+          billName,
+          ownerID,
+          createdDate,
+          total,
+          left,
+          isBillPaid,
+        });
+      });
+    });
+    console.log("relatedBills");
+    console.log(relatedBills);
     dispatch(authAction.getRelatedBillsFromFireStore(relatedBills));
   });
 };
