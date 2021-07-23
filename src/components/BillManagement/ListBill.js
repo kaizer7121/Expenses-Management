@@ -39,7 +39,7 @@ const ListBill = (props) => {
         ownerOfEachBill[checkIndex] = newData;
       });
     };
-    props.bills.map((el) => {
+    props.bills.forEach((el) => {
       const findIndex = ownerOfEachBill.findIndex(
         (element) => element.billID === el.id
       );

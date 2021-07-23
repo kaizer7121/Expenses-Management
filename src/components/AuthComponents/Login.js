@@ -1,8 +1,9 @@
 import { Fragment, useEffect, useState } from "react";
-import firebase from "../../Firebase";
+import firebase, { db } from "../../Firebase";
 
 import Swal from "sweetalert2";
 import {
+  findDataFromFireStore,
   getSingleDataFromFireStore,
   updateDataToFireStore,
 } from "../../action/Action";
@@ -24,7 +25,6 @@ const Login = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    localStorage.removeItem("_grecaptcha");
     countdown > 0 && setTimeout(() => setCountdown(countdown - 1), 1000);
     countdown === 0 && setLockSend(false);
   }, [countdown]);
@@ -109,7 +109,7 @@ const Login = () => {
       .then(async (result) => {
         const user = result.user;
         const uid = user.uid;
-        const userData = await getSingleDataFromFireStore("Users", uid);
+        let userData = await getSingleDataFromFireStore("Users", uid);
         if (!userData) {
           updateDataToFireStore("Users", uid, {
             userID: uid,
@@ -118,16 +118,32 @@ const Login = () => {
             debt: 0,
             role: "User",
           });
-          dispatch(authAction.logout());
-          dispatch(tokenAction.deleteToken());
-          Swal.fire(
-            "Sorry",
-            "Your account don't have permission to login",
-            "warning"
-          ).then(() => {
-            window.location.reload();
+          const newUserData = {
+            userID: uid,
+            phone: user.phoneNumber,
+            name: "",
+            debt: 0,
+            permission: false,
+            role: "User",
+          };
+          setCountdown(0);
+          Swal.fire("Sign in successfully", "", "success").then(() => {
+            const expirationTime = user.h.c;
+            const token = user.Aa;
+            setCountdown(0);
+            dispatch(authAction.login(newUserData));
+            dispatch(tokenAction.addToken({ token, expirationTime }));
           });
         } else {
+          const data = await findDataFromFireStore(
+            "ListUser",
+            "userID",
+            "==",
+            db.collection("Users").doc(userData.userID)
+          );
+          const checkPermission = data.length > 0;
+          userData = { ...userData, permission: checkPermission };
+          setCountdown(0);
           Swal.fire("Sign in successfully", "", "success").then(() => {
             const expirationTime = user.h.c;
             const token = user.Aa;

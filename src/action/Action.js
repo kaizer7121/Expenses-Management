@@ -189,6 +189,9 @@ export const increaseDebtOfUserInFireStore = (userID, debt) => {
 };
 
 // =========================================================
+export const changePermissionOfUser = (permission, dispatch) => {
+  dispatch(authAction.changePermission(permission));
+};
 export const getPaymentMethods = async (userID, dispatch) => {
   const paymentMethods = await findRefDataFromFireStore(
     "PaymentMethods",
@@ -261,7 +264,6 @@ export const getAllUserInfo = async (dispatch) => {
 export const changeNameOfUser = (userInfo, newName, dispatch) => {
   const userID = userInfo.userID;
   const newUserInfo = {
-    ...userInfo,
     name: newName,
   };
 
@@ -271,7 +273,19 @@ export const changeNameOfUser = (userInfo, newName, dispatch) => {
 };
 
 export const addNewPaymentMethods = (paymentMethods, dispatch) => {
-  dispatch(authAction.addPaymentMethods(paymentMethods));
+  const reduxPaymentMethods = [];
+  paymentMethods.forEach((paymentMethod) => {
+    const { id, note, number, type, userID } = paymentMethod;
+    const stringUserID = userID.path.split("/")[1];
+    reduxPaymentMethods.push({
+      id,
+      note,
+      number,
+      type,
+      userID: stringUserID,
+    });
+  });
+  dispatch(authAction.addPaymentMethods(reduxPaymentMethods));
 };
 
 export const deletePaymentMethods = (paymentMethods, dispatch) => {
@@ -369,7 +383,8 @@ export const getRelatedBills = async (userID, dispatch) => {
   ).then(() => {
     const relatedBills = [];
     relatedBillsRaw.map((el) => {
-      const { id, billName, owner, createdDate, total, left, isBillPaid } = el[0];
+      const { id, billName, owner, createdDate, total, left, isBillPaid } =
+        el[0];
       const ownerID = owner.path.split("/")[1];
       return relatedBills.push({
         id,

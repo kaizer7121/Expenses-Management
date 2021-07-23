@@ -41,7 +41,6 @@ const Profile = (props) => {
   useEffect(() => {
     setName(userInfo.name);
   }, [userInfo.name]);
-
   const changeNameHander = (event) => {
     setIsChange(true);
     setName(event.target.value);
@@ -166,7 +165,7 @@ const Profile = (props) => {
     }
     if (name.length === 0) {
       setNotifictation((prevValue) => {
-        return { ...prevValue, nameErr: "Your name must be empty!" };
+        return { ...prevValue, nameErr: "Your name must not be empty!" };
       });
     } else {
       if (userInfo.name !== name) {

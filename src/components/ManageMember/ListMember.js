@@ -166,7 +166,8 @@ const ManageMember = forwardRef((props, ref) => {
                   })}
                 </td>
                 <td className="border-b border-black py-2 lg:py-4">
-                  {loginUserInfo.role === "Admin" ? (
+                  {loginUserInfo.role === "Admin" &&
+                  loginUserInfo.userID !== el.userID ? (
                     <img
                       name={listUser[index].id}
                       className="mx-auto h-5 sm:h-8 md:h-10 m-4 cursor-pointer"

@@ -8,18 +8,20 @@ const authSlice = createSlice({
     name: "",
     debt: 0,
     role: "",
+    permission: "",
     paymentMethods: [{ empty: true }],
     relatedBills: [{ empty: true }],
     userInfoEachBill: [{ empty: true }],
   },
   reducers: {
     login(state, action) {
-      const { userID, phone, name, debt, role } = action.payload;
+      const { userID, phone, name, debt, role, permission } = action.payload;
       state.userID = userID;
       state.phone = phone;
       state.name = name;
       state.debt = +debt;
       state.role = role;
+      state.permission = permission;
     },
     logout(state) {
       state.userID = "";
@@ -27,6 +29,7 @@ const authSlice = createSlice({
       state.name = "";
       state.debt = 0;
       state.role = "";
+      state.permission = "";
       state.paymentMethods = [{ empty: true }];
       state.relatedBills = [{ empty: true }];
       state.userInfoEachBill = [{ empty: true }];
@@ -34,6 +37,10 @@ const authSlice = createSlice({
     updateProfile(state, action) {
       const name = action.payload;
       state.name = name;
+    },
+    changePermission(state, action) {
+      const permission = action.payload;
+      state.permission = permission;
     },
     getPaymentMethodsFromFireStore(state, action) {
       const paymentMethods = action.payload;
