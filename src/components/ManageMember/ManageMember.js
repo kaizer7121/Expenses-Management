@@ -5,12 +5,11 @@ import { getAllUserInfo, getMemberDatas } from "../../action/Action";
 import Loading from "../Loading/Loading";
 import AddMember from "../Popup/AddMember";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router";
 
 const Members = () => {
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [queueAddMember, setQueueAddMember] = useState([]);
 
-  const userInfo = useSelector((state) => state.auth);
   const memberInList = useSelector((state) => state.data.memberInList);
   const memberInfoInList = useSelector((state) => state.data.memberInfoInList);
   const isMemberDataSend = useSelector((state) => state.data.isMemberDataSend);
@@ -20,7 +19,6 @@ const Members = () => {
 
   const childRef = useRef();
   const dispatch = useDispatch();
-  const history = useHistory();
 
   useEffect(() => {
     if (!isMemberDataSend) {
@@ -32,6 +30,9 @@ const Members = () => {
   if (isAddingMember) {
     usersNotInList = listAllUserInfo.filter(
       (el) => !memberInfoInList.find((delEl) => el.userID === delEl.userID)
+    );
+    usersNotInList = usersNotInList.filter(
+      (user) => !queueAddMember.find((el) => user.userID === el.userID)
     );
   }
 
@@ -47,15 +48,16 @@ const Members = () => {
     const selectedUser = usersNotInList.filter((el) => {
       return el.phone === phone;
     });
+    setQueueAddMember((prevValue) => [...prevValue, ...selectedUser]);
     setIsAddingMember(false);
     childRef.current.addMemberToList(selectedUser[0]);
   };
 
   return (
     <div>
-      {userInfo.userID.length !== 0 &&
+      {/* {userInfo.userID.length !== 0 &&
         userInfo.name.length === 0 &&
-        history.replace("/profile")}
+        history.replace("/profile")} */}
       {!isMemberDataSend && <Loading />}
       {isMemberDataSend && (
         <ListMember

@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
 import {
   getAllUserInfo,
   getMemberDatas,
@@ -32,7 +31,6 @@ const BillManagement = () => {
   const [editData, setEditData] = useState({});
 
   const dispatch = useDispatch();
-  const history = useHistory();
 
   const isMemberDataSend = useSelector((state) => state.data.isMemberDataSend);
   const memberInfoInList = useSelector((state) => state.data.memberInfoInList);
@@ -214,9 +212,9 @@ const BillManagement = () => {
 
   return (
     <Fragment>
-      {userInfo.userID.length !== 0 &&
+      {/* {userInfo.userID.length !== 0 &&
         userInfo.name.length === 0 &&
-        history.replace("/profile")}
+        history.replace("/profile")} */}
       {(!isMemberDataSend || !allBillAreSend) && <Loading />}
       {isMemberDataSend && allBillAreSend && (
         <Fragment>

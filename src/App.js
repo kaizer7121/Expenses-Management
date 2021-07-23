@@ -8,18 +8,22 @@ import { authAction } from "./store/authSlice";
 import { tokenAction } from "./store/tokenSlice";
 import firebase from "firebase";
 import {
+  findDataFromFireStore,
   getPaymentMethods,
-  getRelatedBills,
   getSingleDataFromFireStore,
 } from "./action/Action";
 import Test from "./components/test/test";
 import { dataAction } from "./store/dataSlice";
 import Bills from "./pages/Bills";
+import Notification from "./pages/Notification";
+import { db } from "./Firebase";
+import Loading from "./components/Loading/Loading";
 
 function App() {
   const token = useSelector((state) => state.token.token);
   const expirationTime = useSelector((state) => state.token.expirationTime);
   const dispatch = useDispatch();
+  const userInfo = useSelector((state) => state.auth);
 
   useEffect(() => {
     console.log("Effect: ");
@@ -35,7 +39,19 @@ function App() {
           const expirationTime = user.h.c;
           const token = user.Aa;
           const userID = user.uid;
-          const userInfo = await getSingleDataFromFireStore("Users", userID);
+          let userInfo = await getSingleDataFromFireStore("Users", userID);
+          console.log("UserINFO:");
+          console.log(userInfo);
+          let checkPermission = "";
+          const data = await findDataFromFireStore(
+            "ListUser",
+            "userID",
+            "==",
+            db.collection("Users").doc(userID)
+          );
+
+          checkPermission = data.length > 0;
+          userInfo = { ...userInfo, permission: checkPermission };
           await getPaymentMethods(userID, dispatch);
           dispatch(authAction.login(userInfo));
           dispatch(tokenAction.addToken({ token, expirationTime }));
@@ -48,24 +64,72 @@ function App() {
 
   return (
     <Fragment>
-      <Switch>
-        <Route path="/" exact>
-          {token ? <Bills /> : <Redirect to="/SignIn" />}
-        </Route>
-        <Route path="/SignIn">{token ? <Redirect to="/" /> : <Auth />}</Route>
-        <Route path="/profile">
-          {token ? <ProfileUser /> : <Redirect to="/SignIn" />}
-        </Route>
-        <Route path="/Test">
-          <Test />
-        </Route>
-        <Route path="/members">
-          {!token ? <Redirect to="/SignIn" /> : <Members />}
-        </Route>
-        <Route path="*">
-          <Redirect to="/" />
-        </Route>
-      </Switch>
+      {!token && (
+        <Switch>
+          <Route path="/Signin">{token ? <Redirect to="/" /> : <Auth />}</Route>
+          <Route path="*">
+            <Redirect to="/Signin" />
+          </Route>
+        </Switch>
+      )}
+      {token && userInfo.permission === "" && (
+        <Switch>
+          <Route path="/">
+            <Loading />
+          </Route>
+          <Route path="*">
+            <Redirect to="/" />
+          </Route>
+        </Switch>
+      )}
+      {token && userInfo.permission !== "" && userInfo.name === "" && (
+        <Switch>
+          <Route path="/profile">
+            <ProfileUser />
+          </Route>
+          <Route path="*">
+            <Redirect to="/profile" />
+          </Route>
+        </Switch>
+      )}
+      {token &&
+        userInfo.permission !== "" &&
+        userInfo.name !== "" &&
+        userInfo.permission === false && (
+          <Switch>
+            <Route path="/profile">
+              <ProfileUser />
+            </Route>
+            <Route path="/notification">
+              <Notification />
+            </Route>
+            <Route path="*">
+              <Redirect to="/notification" />
+            </Route>
+          </Switch>
+        )}
+      {token &&
+        userInfo.permission !== "" &&
+        userInfo.name !== "" &&
+        userInfo.permission === true && (
+          <Switch>
+            <Route path="/" exact>
+              <Bills />
+            </Route>
+            <Route path="/profile">
+              <ProfileUser />
+            </Route>
+            <Route path="/Test">
+              <Test />
+            </Route>
+            <Route path="/members">
+              <Members />
+            </Route>
+            <Route path="*">
+              <Redirect to="/" />
+            </Route>
+          </Switch>
+        )}
     </Fragment>
   );
 }

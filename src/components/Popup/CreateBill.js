@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { db } from "../../Firebase";
 
 const CreateBill = (props) => {
-  const [type, setType] = useState(props.editData.billInfo ? "Edit" : "Create");
+  const type = props.editData.billInfo ? "Edit" : "Create";
   const [listMember, setListMember] = useState([...props.listUserInBill]);
   const [billInformation, setBillInformation] = useState({
     name: type === "Edit" ? props.editData.billInfo.billName : "",
