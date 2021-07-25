@@ -100,6 +100,9 @@ const BillManagement = () => {
       } else {
         const tempData = [];
         relatedBills.forEach((item, index) => {
+          const userInfoInBill = userInfoEachBill.find((el) => {
+            return el.billID === item.id;
+          });
           tempData.push({
             id: item.id,
             billName: item.billName,
@@ -107,12 +110,10 @@ const BillManagement = () => {
             createdDate: item.createdDate,
             total: item.total,
             left: item.left,
-            yourPart: userInfoEachBill[index]
-              ? userInfoEachBill[index].yourPart
+            yourPart: userInfoInBill
+              ? userInfoInBill.yourPart
               : "You don't need to pay",
-            isUserPaid: userInfoEachBill[index]
-              ? userInfoEachBill[index].isUserPaid
-              : false,
+            isUserPaid: userInfoInBill ? userInfoInBill.isUserPaid : false,
             billIsPaid: item.left === 0,
           });
         });

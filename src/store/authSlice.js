@@ -66,6 +66,13 @@ const authSlice = createSlice({
       const newInfo = action.payload;
       state.userInfoEachBill = [...state.userInfoEachBill, newInfo];
     },
+    removeUserInfoEachBill(state, action) {
+      const id = action.payload;
+      let tempData = [...state.userInfoEachBill];
+      const removedIndex = tempData.findIndex((el) => el.id === id);
+      tempData.splice(removedIndex, 1);
+      state.userInfoEachBill = [...tempData];
+    },
     editUserInfoEachBill(state, action) {
       const { id, newInfo } = action.payload;
       let tempData = [...state.userInfoEachBill];

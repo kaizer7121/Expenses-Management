@@ -10,6 +10,7 @@ import {
   addUserInfoEachBillToStore,
   deconvertPhoneNumber,
   deleteDataInFireStore,
+  deleteUserInfoEachBillInStore,
   editRelatedBillInStore,
   editUserInfoEachBillInStore,
   randomString,
@@ -286,9 +287,7 @@ const CreateBill = (props) => {
         left: leftMonney,
         isBillPaid: leftMonney === billInformation.amount,
       };
-      if (isOwnerParticipate) {
-        addRelatedBillToStore(fullBillInfo, dispatch);
-      }
+      addRelatedBillToStore(fullBillInfo, dispatch);
       updateDataToFireStore("ListBill", randomBillID, fullBillInfo);
       listMember.forEach((member) => {
         if (member.select) {
@@ -342,9 +341,7 @@ const CreateBill = (props) => {
         isBillPaid: leftMonney === billInformation.amount,
       };
       const billID = props.editData.billInfo.billID;
-      if (isOwnerParticipate) {
-        editRelatedBillInStore(billID, newInfoOfBill, dispatch);
-      }
+      editRelatedBillInStore(billID, newInfoOfBill, dispatch);
       updateDataToFireStore("ListBill", billID, newInfoOfBill);
 
       props.editData.infoOfAllMember.forEach((info) => {
@@ -383,6 +380,13 @@ const CreateBill = (props) => {
               );
             } else {
               addUserInfoEachBillToStore(participant, dispatch);
+            }
+          } else if (!isOwnerParticipate) {
+            const ownerInfoInOldBill = infoOfAllMember.find((info) => {
+              return info.userID === userInfo.userID;
+            });
+            if (ownerInfoInOldBill) {
+              deleteUserInfoEachBillInStore(ownerInfoInOldBill.id, dispatch);
             }
           }
           if (!isOwnerParticipate || member.id !== ownerInfo.id) {

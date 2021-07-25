@@ -17,13 +17,13 @@ const ListBill = (props) => {
   });
   const userInfo = useSelector((state) => state.auth);
   console.log(ownerOfEachBill);
-  const setPaidColor = {
+  const setUnpaidColor = {
     backgroundColor: classes.background77ACF1,
     buttonColor: classes.buttonF0EBCC,
     textColor: classes.textBlack,
   };
 
-  const setUnpaidColor2 = {
+  const setPaidColor = {
     backgroundColor: classes.background1EAE98,
     buttonColor: classes.buttonFFFFC7,
     textColor: classes.textBlack,
@@ -99,7 +99,7 @@ const ListBill = (props) => {
   return (
     <div className="grid justify-items-center grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 mt-2 sm:mt-6 md:mt-12 2xl:mt-18">
       {props.bills.map((el, index) => {
-        const cardColor = el.billIsPaid ? setPaidColor : setUnpaidColor2;
+        const cardColor = el.billIsPaid ? setPaidColor : setUnpaidColor;
         return (
           <div
             key={el.id}
@@ -158,7 +158,7 @@ const ListBill = (props) => {
                   }}
                 >
                   <img
-                    src={`images/loadingDetail${el.billIsPaid ? "2" : "1"}.png`}
+                    src={`images/loadingDetail${el.billIsPaid ? "1" : "2"}.png`}
                     alt="loading"
                     className={`animate-spin px-2 bg-opacity-0 ${
                       isGettingDetail.status && isGettingDetail.index === index

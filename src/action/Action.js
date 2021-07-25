@@ -330,6 +330,10 @@ export const addUserInfoEachBillToStore = (newInfo, dispatch) => {
   );
 };
 
+export const deleteUserInfoEachBillInStore = (id, dispatch) => {
+  dispatch(authAction.removeUserInfoEachBill(id));
+};
+
 export const addRelatedBillToStore = (ownBillInfo, dispatch) => {
   const { id, billName, owner, createdDate, total, left, isBillPaid } =
     ownBillInfo;
@@ -402,12 +406,12 @@ export const getRelatedBills = async (userID, dispatch) => {
       "==",
       db.collection("Users").doc(userID)
     ).then((data) => {
-      data.map((item) => {
+      data.forEach((item) => {
         const { id, billName, owner, createdDate, total, left, isBillPaid } =
           item;
         const ownerID = owner.path.split("/")[1];
 
-        return relatedBills.push({
+        const tempBill = {
           id,
           billName,
           ownerID,
@@ -415,7 +419,22 @@ export const getRelatedBills = async (userID, dispatch) => {
           total,
           left,
           isBillPaid,
-        });
+        };
+        if (
+          relatedBills.findIndex(
+            (relatedBill) => relatedBill.id === tempBill.id
+          ) === -1
+        ) {
+          return relatedBills.push({
+            id,
+            billName,
+            ownerID,
+            createdDate,
+            total,
+            left,
+            isBillPaid,
+          });
+        }
       });
     });
     console.log("relatedBills");
