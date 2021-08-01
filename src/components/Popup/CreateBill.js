@@ -11,6 +11,7 @@ import {
   deconvertPhoneNumber,
   deleteDataInFireStore,
   deleteUserInfoEachBillInStore,
+  editDebtOfLoginUserInStore,
   editRelatedBillInStore,
   editUserInfoEachBillInStore,
   randomString,
@@ -44,7 +45,7 @@ const CreateBill = (props) => {
     type === "Edit" ? props.editData.isOwnerParticipate : false
   );
   const userInfo = useSelector((state) => state.auth);
-  const allUserInfo = useSelector((state) => state.data.allUserInfo);
+  const allUserInfo = useSelector((state) => state.data.memberInfoInList);
   const dispatch = useDispatch();
   useEffect(() => {
     if (type === "Edit" && !editNumberOfParticipant) {
@@ -348,9 +349,33 @@ const CreateBill = (props) => {
         deleteDataInFireStore("ListUserOfBill", info.id);
       });
 
+      const infoOfAllMember = props.editData.infoOfAllMember;
+      const oldMembersNotParticipate = infoOfAllMember.filter(
+        (oldInfo) =>
+          !listMember.find((newInfo) => {
+            return newInfo.select && oldInfo.userID === newInfo.id;
+          })
+      );
+      oldMembersNotParticipate.forEach((oldMember) => {
+        deleteDataInFireStore("ListUserOfBill", oldMember.id);
+        
+        if (!oldMember.isPaid) {
+          console.log("UnPaid");
+          addUserDebtToStore(oldMember.userID, oldMember.monney * -1, dispatch);
+          const memberInfo = allUserInfo.find(
+            (el) => el.userID === oldMember.userID
+          );
+          console.log("=============");
+          console.log(memberInfo);
+          console.log(oldMember);
+          updateDataToFireStore("Users", memberInfo.userID, {
+            debt: memberInfo.debt - oldMember.monney,
+          });
+        }
+      });
+
       listMember.forEach((member) => {
         if (member.select) {
-          const infoOfAllMember = props.editData.infoOfAllMember;
           const infoOfMember = infoOfAllMember.find((info) => {
             return info.userID === member.id;
           });
@@ -386,6 +411,12 @@ const CreateBill = (props) => {
               return info.userID === userInfo.userID;
             });
             if (ownerInfoInOldBill) {
+              if (!ownerInfoInOldBill.isPaid) {
+                editDebtOfLoginUserInStore(
+                  userInfo.debt - ownerInfoInOldBill.monney,
+                  dispatch
+                );
+              }
               deleteUserInfoEachBillInStore(ownerInfoInOldBill.id, dispatch);
             }
           }

@@ -119,9 +119,6 @@ function App() {
             <Route path="/profile">
               <ProfileUser />
             </Route>
-            <Route path="/Test">
-              <Test />
-            </Route>
             <Route path="/members">
               <Members />
             </Route>
