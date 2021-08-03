@@ -30,7 +30,6 @@ const ManageMember = forwardRef((props, ref) => {
   const loginUserInfo = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
-  console.log(listUser);
   useImperativeHandle(ref, () => ({
     addMemberToList(selectedUser) {
       setUsersInfo((prevValue) => [...prevValue, selectedUser]);
@@ -118,7 +117,6 @@ const ManageMember = forwardRef((props, ref) => {
           });
         }
       });
-      console.log(reduxData);
       addMemberInStore(reduxData, usersInfo, dispatch);
     }
     setNotification({

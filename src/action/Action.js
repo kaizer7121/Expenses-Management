@@ -178,14 +178,32 @@ export const findRefDataFromFireStore = async (
 };
 
 export const increaseDebtOfUserInFireStore = (userID, debt) => {
-  console.log("Updating debt");
   db.collection("Users")
     .doc(userID)
     .update({
       debt: firebase.firestore.FieldValue.increment(debt),
     })
-    .then(() => console.log("Update debt!"))
     .catch((err) => console.log(err));
+};
+
+export const checkPermissionUsersListener = (userID, dispatch) => {
+  db.collection("ListUser").onSnapshot((snapshot) => {
+    let changes = snapshot.docChanges();
+    changes.forEach((change) => {
+      const modifiedUser = change.doc.data();
+      if (change.type === "added") {
+        const refUser = db.collection("Users").doc(userID);
+        if (modifiedUser.userID.id === refUser.id) {
+          dispatch(authAction.changePermission(true));
+        }
+      } else if (change.type === "removed") {
+        const refUser = db.collection("Users").doc(userID);
+        if (modifiedUser.userID.id === refUser.id) {
+          dispatch(authAction.changePermission(false));
+        }
+      }
+    });
+  });
 };
 
 // =========================================================
@@ -437,8 +455,6 @@ export const getRelatedBills = async (userID, dispatch) => {
         }
       });
     });
-    console.log("relatedBills");
-    console.log(relatedBills);
     dispatch(authAction.getRelatedBillsFromFireStore(relatedBills));
   });
 };

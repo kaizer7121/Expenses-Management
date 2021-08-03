@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   changePermissionOfUser,
+  getSingleDataFromFireStore,
   randomString,
   updateDataToFireStore,
 } from "../../action/Action";
@@ -10,10 +11,21 @@ import { db } from "../../Firebase";
 const PermissionNotification = () => {
   const [secretCode, setSecretCode] = useState("");
   const [notification, setNotification] = useState("");
+  const [trueSecretCode, setTrueSecretCode] = useState("");
 
   const userInfo = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    getSingleDataFromFireStore("SecretCode", "SecretCode").then(
+      (secretCodeInFireStore) => {
+        if (secretCodeInFireStore && secretCodeInFireStore.secretCode) {
+          setTrueSecretCode(secretCodeInFireStore.secretCode);
+        }
+      }
+    );
+  }, []);
 
   const changeCodeHandler = (event) => {
     const value = event.target.value;
@@ -21,30 +33,17 @@ const PermissionNotification = () => {
     setSecretCode(value);
   };
 
-  const addUserToList = () => {
-    const id = randomString(20);
-    updateDataToFireStore("ListUser", id, {
-      id,
-      userID: db.collection("Users").doc(userInfo.userID),
-    });
-  };
-
-  const permitUserToUse = () => {
-    changePermissionOfUser(true, dispatch);
-  };
-
   const submitCodeHandler = () => {
     if (secretCode.length === 0) {
       setNotification("The code can't be empty");
     } else {
-      if (secretCode === "user") {
-        addUserToList();
-        permitUserToUse();
-        updateDataToFireStore("Users", userInfo.userID, { role: "User" });
-      } else if (secretCode === "admin") {
-        addUserToList();
-        permitUserToUse();
-        updateDataToFireStore("Users", userInfo.userID, { role: "Admin" });
+      if (secretCode === trueSecretCode) {
+        const id = randomString(20);
+        updateDataToFireStore("ListUser", id, {
+          id,
+          userID: db.collection("Users").doc(userInfo.userID),
+        });
+        changePermissionOfUser(true, dispatch);
       } else {
         setNotification("The code is not correct!");
       }

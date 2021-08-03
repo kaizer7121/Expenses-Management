@@ -25,8 +25,15 @@ const Login = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    countdown > 0 && setTimeout(() => setCountdown(countdown - 1), 1000);
+    let timeout;
+    if (countdown > 0) {
+      timeout = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
     countdown === 0 && setLockSend(false);
+
+    return function cleanup() {
+      clearTimeout(timeout);
+    };
   }, [countdown]);
 
   const setUpRecaptcha = () => {
@@ -102,7 +109,7 @@ const Login = () => {
   };
 
   const confirmCodeAndSignIn = () => {
-    const code = verificationCode;
+    const code = verificationCode.length > 0 ? verificationCode : " ";
     setLockSubmit(true);
     window.confirmationResult
       .confirm(code)
@@ -243,7 +250,7 @@ const Login = () => {
                 <button
                   type="submit"
                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 cursor-wait"
-                  onClick={confirmCodeAndSignIn}
+                  onClick={() => {}}
                 >
                   <img
                     src="images/Rolling-1s-51px.png"

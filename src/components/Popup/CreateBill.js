@@ -358,16 +358,12 @@ const CreateBill = (props) => {
       );
       oldMembersNotParticipate.forEach((oldMember) => {
         deleteDataInFireStore("ListUserOfBill", oldMember.id);
-        
+
         if (!oldMember.isPaid) {
-          console.log("UnPaid");
           addUserDebtToStore(oldMember.userID, oldMember.monney * -1, dispatch);
           const memberInfo = allUserInfo.find(
             (el) => el.userID === oldMember.userID
           );
-          console.log("=============");
-          console.log(memberInfo);
-          console.log(oldMember);
           updateDataToFireStore("Users", memberInfo.userID, {
             debt: memberInfo.debt - oldMember.monney,
           });

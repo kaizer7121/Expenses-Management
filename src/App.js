@@ -11,6 +11,7 @@ import {
   findDataFromFireStore,
   getPaymentMethods,
   getSingleDataFromFireStore,
+  checkPermissionUsersListener,
 } from "./action/Action";
 import Test from "./components/test/test";
 import { dataAction } from "./store/dataSlice";
@@ -40,8 +41,7 @@ function App() {
           const token = user.Aa;
           const userID = user.uid;
           let userInfo = await getSingleDataFromFireStore("Users", userID);
-          console.log("UserINFO:");
-          console.log(userInfo);
+
           let checkPermission = "";
           const data = await findDataFromFireStore(
             "ListUser",
@@ -55,6 +55,7 @@ function App() {
           await getPaymentMethods(userID, dispatch);
           dispatch(authAction.login(userInfo));
           dispatch(tokenAction.addToken({ token, expirationTime }));
+          checkPermissionUsersListener(userInfo.userID, dispatch);
         } else {
           console.log("User data is null!");
         }
@@ -113,6 +114,9 @@ function App() {
         userInfo.name !== "" &&
         userInfo.permission === true && (
           <Switch>
+            <Route path="/test" exact>
+              <Test />
+            </Route>
             <Route path="/" exact>
               <Bills />
             </Route>
