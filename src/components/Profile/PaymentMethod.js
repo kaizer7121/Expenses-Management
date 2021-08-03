@@ -20,20 +20,19 @@ const PaymentMethod = (props) => {
   const cardColor = props.number % 4 < 2 ? setColor1 : setColor2;
 
   return (
-    <div className="max-w-md inline-flex items-center justify-center">
-      <div className={`md:w-full mt-4 ${cardColor.backgroundColor}`}>
+    <div className="max-w-sm inline-flex items-center justify-center w-full mb-6 sm:max-w-md lg:pr-4 xl:pr-8 lg:max-w-lg ">
+      <div className={`w-full min-h-small mt-4 md:min-h-large inline-block ${cardColor.backgroundColor}`}>
         <div className="w-full">
-          <p className="appearance-none w-full py-2 px-4 leading-tight text-3xl font-bold text-left">
+          <p className="appearance-none w-full py-2 px-4 leading-tight text-2xl font-bold text-left sm:text-3xl">
             {props.data.type}
           </p>
         </div>
-        <input
-          className={`${cardColor.backgroundColor} appearance-none w-full py-2 px-4 leading-tight focus:outline-none text-3xl font-bold`}
-          type="text"
-          value={props.data.number}
-          onChange={() => {}}
-        />
-        <p className="appearance-none w-full py-2 px-4 leading-tight text-lg text-left">
+        <div className="w-full">
+          <p className="appearance-none w-full py-2 px-4 leading-tight text-2xl font-bold text-left sm:text-3xl">
+            {props.data.number}
+          </p>
+        </div>
+        <p className="appearance-none w-full py-2 px-4 leading-tight text-base text-left sm:text-lg">
           {props.data.note}
         </p>
         <div className="text-right mr-4 pb-4">

@@ -12,7 +12,6 @@ const UserNav = () => {
     dispatch(authAction.logout());
     dispatch(tokenAction.deleteToken());
     dispatch(dataAction.deleleData());
-    localStorage.removeItem("_grecaptcha"); 
     Swal.fire("Sign out successfully", "Good bye", "success");
   };
 

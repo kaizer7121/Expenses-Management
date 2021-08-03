@@ -8,6 +8,7 @@ import {
   deconvertPhoneNumber,
   deleteDataInFireStore,
   deletePaymentMethods,
+  getSingleDataFromFireStore,
   randomString,
   updateDataToFireStore,
 } from "../../action/Action";
@@ -23,6 +24,7 @@ const Profile = (props) => {
     note: "",
   });
   const [name, setName] = useState("");
+  const [secretCode, setSecretCode] = useState("");
   const [paymentInfos, setPaymentInfos] = useState([...props.paymentInfos]);
   const [backupPaymentInfos, setBackupPaymentInfos] = useState([
     ...paymentInfos,
@@ -40,10 +42,27 @@ const Profile = (props) => {
 
   useEffect(() => {
     setName(userInfo.name);
+    getSingleDataFromFireStore("SecretCode", "SecretCode").then(
+      (secretCodeInFireStore) => {
+        if (secretCodeInFireStore && secretCodeInFireStore.secretCode) {
+          setSecretCode(secretCodeInFireStore.secretCode);
+        }
+      }
+    );
   }, [userInfo.name]);
+
   const changeNameHander = (event) => {
     setIsChange(true);
     setName(event.target.value);
+    setNotifictation({
+      paymentErr: "",
+      nameErr: "",
+    });
+  };
+
+  const changeCodeHandler = (event) => {
+    setIsChange(true);
+    setSecretCode(event.target.value);
     setNotifictation({
       paymentErr: "",
       nameErr: "",
@@ -163,7 +182,12 @@ const Profile = (props) => {
       setBackupPaymentInfos([...paymentInfos]);
       setIsChange(false);
     }
-    if (name.length === 0) {
+    let code = secretCode;
+    if (secretCode.trim().length === 0) {
+      code = randomString(6);
+      setSecretCode(code);
+    }
+    if (name.trim().length === 0) {
       setNotifictation((prevValue) => {
         return { ...prevValue, nameErr: "Your name must not be empty!" };
       });
@@ -171,6 +195,9 @@ const Profile = (props) => {
       if (userInfo.name !== name) {
         changeNameOfUser(userInfo, name, dispatch);
       }
+      updateDataToFireStore("SecretCode", "SecretCode", {
+        secretCode: code,
+      });
       history.push("/");
     }
   };
@@ -210,6 +237,27 @@ const Profile = (props) => {
             <p className="text-red-600 text-lg lg:text-xl">
               {notification.nameErr}
             </p>
+            {userInfo.role === "Admin" && (
+              <div className="mt-4 space-y-2">
+                <p className="font-semibold text-red-600 text-xl">
+                  Secret code
+                  <span className="font-normal text-lg text-pink-600">
+                    {" "}
+                    (random if empty)
+                  </span>
+                  :
+                </p>
+                <input
+                  name="verificationCode"
+                  type="text"
+                  value={secretCode}
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-red-400 
+              rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 focus:z-10 sm:text-base lg:text-xl font-semibold"
+                  onChange={changeCodeHandler}
+                />
+              </div>
+            )}
           </div>
           <div className="pt-4">
             <p className="text-xl font-semibold">Add New Payment Method:</p>

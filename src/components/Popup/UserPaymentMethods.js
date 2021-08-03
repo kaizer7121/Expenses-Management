@@ -30,7 +30,7 @@
           className={`${classes.modal} p-4 overflow-auto max-h-85% sm:px-8 md:p-8 lg:p-10`}
         >
           <div className="mb-6 text-center sm:mb-6 md:-mt-4">
-            <h1 className="inline font-bold text-blue-900 pl-5 text-3xl sm:text-4xl lg:text-5xl">
+            <h1 className="inline font-bold text-blue-900 pl-5 text-2xl sm:text-4xl lg:text-5xl">
               Payment Methods
             </h1>
             <img
@@ -50,22 +50,16 @@
                       className={`w-full min-h-small mt-4 md:min-h-large inline-block ${cardColor.backgroundColor}`}
                     >
                       <div className="w-full">
-                        <p className="appearance-none w-full py-2 px-4 leading-tight text-3xl font-bold text-left lg:text-4xl lg:py-3">
+                        <p className="appearance-none w-full py-2 px-4 leading-tight text-2xl font-bold text-left sm:text-3xl lg:text-4xl lg:py-3">
                           {el.type}
                         </p>
                       </div>
-                      {/* <input
-                        className={`${cardColor.backgroundColor} appearance-none w-full py-2 px-4 leading-tight focus:outline-none text-2xl sm:text-3xl font-bold lg:text-4xl lg:py-3`}
-                        type="text"
-                        value={el.number}
-                        onChange={() => {}}
-                      /> */}
                       <div className="w-full">
-                        <p className="appearance-none w-full py-2 px-4 leading-tight text-3xl font-bold text-left lg:text-4xl lg:py-3">
+                        <p className="appearance-none w-full py-2 px-4 leading-tight text-2xl font-bold text-left sm:text-3xl lg:text-4xl lg:py-3">
                           {el.number}
                         </p>
                       </div>
-                      <p className="appearance-none w-full py-2 px-4 leading-tight text-lg text-left lg:text-xl lg:py-3">
+                      <p className="appearance-none w-full py-2 px-4 leading-tight text-base text-left sm:text-lg lg:text-xl lg:py-3">
                         {el.note}
                       </p>
                     </div>

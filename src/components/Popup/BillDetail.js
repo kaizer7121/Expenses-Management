@@ -33,10 +33,6 @@ const BillDetail = (props) => {
 
   const dispatch = useDispatch();
 
-  console.log("billInfo");
-  console.log(billInfo);
-  console.log("infoOfAllMember");
-  console.log(infoOfAllMember);
   useEffect(() => {
     if (!isGetPaymentInfo) {
       findRefDataFromFireStore(
@@ -53,7 +49,6 @@ const BillDetail = (props) => {
   }, [isGetPaymentInfo, ownerInfo.userID]);
 
   const changeStatusOfPaid = (event) => {
-    console.log(event.target.id);
     const userID = event.target.name;
     if (memberInList.find((item) => item.uid === userID)) {
       setNotification("");

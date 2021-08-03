@@ -16,7 +16,6 @@ const ListBill = (props) => {
     index: -1,
   });
   const userInfo = useSelector((state) => state.auth);
-  console.log(ownerOfEachBill);
   const setUnpaidColor = {
     backgroundColor: classes.background77ACF1,
     buttonColor: classes.buttonF0EBCC,
@@ -53,7 +52,6 @@ const ListBill = (props) => {
   const showBillDetail = async (element, index) => {
     if (!isGettingDetail.status) {
       setIsGettingDetail({ status: true, index: index });
-      console.log(element);
       const infoOfAllMember = [];
       const ownerID = element.ownerID;
       const ownerInfo = ownerOfEachBill.find(({ owner }) => {
