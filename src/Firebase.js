@@ -13,16 +13,6 @@ export var firebaseConfig = {
   measurementId: "G-JCWEBGE49B",
 };
 
-// const firebaseConfig = {
-//   apiKey: "AIzaSyA43j3wbJTyAHL-SAFzs8bvXI9aMBM7e_0",
-//   authDomain: "database-fcode-3fef9.firebaseapp.com",
-//   databaseURL: "https://database-fcode-3fef9.firebaseio.com",
-//   projectId: "database-fcode-3fef9",
-//   storageBucket: "database-fcode-3fef9.appspot.com",
-//   messagingSenderId: "669779502578",
-//   appId: "1:669779502578:web:05c2bdbf664baffd08376b",
-// };
-
 firebase.initializeApp(firebaseConfig);
  
 export const db = firebase.firestore();
