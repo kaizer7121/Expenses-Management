@@ -7,25 +7,12 @@ import PermissionNotification from "../Notification/PermissionNotification";
 const Test = () => {
   const userInfo = useSelector((state) => state.auth);
 
-  const checkListener = () => {
-    db.collection("Users").onSnapshot((snapshot) => {
-      let changes = snapshot.docChanges();
-      changes.forEach((change) => {
-        if (change.type === "modified") {
-          const modifiedUser = change.doc.data();
-          console.log(modifiedUser);
-          console.log("=================");
-          console.log(userInfo);
-          console.log("=================")
-          if (userInfo.userID === modifiedUser.userID) {
-            console.log("UPDATING");
-          }
-        }
-      });
+  
+  db.collection("SecretCode").doc("SecretCode")
+    .onSnapshot((doc) => {
+        console.log("Current data: ", doc.data().secretCode);
     });
-  };
-
-  checkListener();
+  
   return (
     <Fragment>
       <p>checkListener:</p>
