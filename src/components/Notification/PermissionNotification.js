@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   changePermissionOfUser,
-  getSingleDataFromFireStore,
   randomString,
   updateDataToFireStore,
 } from "../../action/Action";

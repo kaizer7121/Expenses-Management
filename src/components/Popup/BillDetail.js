@@ -18,9 +18,7 @@ const BillDetail = (props) => {
   const [billInfo, setBillInfo] = useState({
     ...props.billDetailData.billInfo,
   });
-  const [ownerInfo, setBillDetailData] = useState({
-    ...props.billDetailData.ownerInfo,
-  });
+  let ownerInfo = { ...props.billDetailData.ownerInfo };
   const [infoOfAllMember, setInfoOfAllMember] = useState([
     ...props.billDetailData.infoOfAllMember,
   ]);
