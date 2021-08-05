@@ -11,7 +11,6 @@ import { useDispatch } from "react-redux";
 import { authAction } from "../../store/authSlice";
 import { tokenAction } from "../../store/tokenSlice";
 
-let isRender = false;
 let downloadTimer;
 
 const Login = () => {

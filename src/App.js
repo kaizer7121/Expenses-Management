@@ -13,7 +13,6 @@ import {
   getSingleDataFromFireStore,
   checkPermissionUsersListener,
 } from "./action/Action";
-import Test from "./components/test/test";
 import { dataAction } from "./store/dataSlice";
 import Bills from "./pages/Bills";
 import Notification from "./pages/Notification";
@@ -27,10 +26,8 @@ function App() {
   const userInfo = useSelector((state) => state.auth);
 
   useEffect(() => {
-    console.log("Effect: ");
     const currentTime = new Date().getTime() + 60000;
     if (!token || expirationTime <= currentTime) {
-      console.log("TIMEOUT");
       dispatch(authAction.logout());
       dispatch(tokenAction.deleteToken());
       dispatch(dataAction.deleleData());
@@ -67,9 +64,9 @@ function App() {
     <Fragment>
       {!token && (
         <Switch>
-          <Route path="/Signin">{token ? <Redirect to="/" /> : <Auth />}</Route>
+          <Route path="/sign-in">{token ? <Redirect to="/" /> : <Auth />}</Route>
           <Route path="*">
-            <Redirect to="/Signin" />
+            <Redirect to="/sign-in" />
           </Route>
         </Switch>
       )}
@@ -114,9 +111,6 @@ function App() {
         userInfo.name !== "" &&
         userInfo.permission === true && (
           <Switch>
-            <Route path="/test" exact>
-              <Test />
-            </Route>
             <Route path="/" exact>
               <Bills />
             </Route>

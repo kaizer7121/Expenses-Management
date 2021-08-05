@@ -17,7 +17,7 @@ const BillManagement = () => {
   const userInfoEachBill = useSelector((state) => state.auth.userInfoEachBill);
   const [currentbills, setCurrentBills] = useState([...relatedBills]);
   const [viewBills, setViewBills] = useState([...relatedBills]);
-  const [ownerOfEachBill, setOwnerOfEachBill] = useState([]);
+  let ownerOfEachBill = [];
   const [isCreatingBill, setIsCreatingBill] = useState(false);
   const [allBillAreSend, setAllBillAreSend] = useState(false);
   const [isShowDetail, setIsShowDetail] = useState(false);
