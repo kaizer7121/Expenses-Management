@@ -18,13 +18,13 @@ const PermissionNotification = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    getSingleDataFromFireStore("SecretCode", "SecretCode").then(
-      (secretCodeInFireStore) => {
-        if (secretCodeInFireStore && secretCodeInFireStore.secretCode) {
-          setTrueSecretCode(secretCodeInFireStore.secretCode);
+    db.collection("SecretCode")
+      .doc("SecretCode")
+      .onSnapshot((doc) => {
+        if (doc.data() && doc.data().secretCode) {
+          setTrueSecretCode(doc.data().secretCode);
         }
-      }
-    );
+      });
   }, []);
 
   const changeCodeHandler = (event) => {

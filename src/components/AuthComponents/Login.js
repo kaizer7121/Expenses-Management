@@ -37,19 +37,16 @@ const Login = () => {
   }, [countdown]);
 
   const setUpRecaptcha = () => {
-    if (!isRender) {
-      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: (response) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-            // onSignInSubmit();
-          },
-        }
-      );
-      isRender = true;
-    }
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+      "recaptcha-container",
+      {
+        size: "invisible",
+        callback: (response) => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          // onSignInSubmit();
+        },
+      }
+    );
   };
 
   const convertPhoneNumber = (phoneNum) => {
