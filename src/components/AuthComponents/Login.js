@@ -174,7 +174,7 @@ const Login = () => {
 
   return (
     <Fragment>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 xs+:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div>
             <img
@@ -202,14 +202,14 @@ const Login = () => {
                 {!lockSend ? (
                   <button
                     onClick={sendCodeThroughSMS}
-                    className="sm:ml-8 group relative inline-flex w-3/12 sm:w-2/12 justify-center py-3 sm:py-2 px-1 border border-transparent text-xs font-medium rounded-sm text-white bg-blue-700 hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="xs+:ml-8 group relative inline-flex w-3/12 xs+:w-2/12 justify-center py-3 xs+:py-2 px-1 border border-transparent text-xs font-medium rounded-sm text-white bg-blue-700 hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     Send code
                   </button>
                 ) : (
                   <button
                     onClick={sendCodeThroughSMS}
-                    className="sm:ml-8 group relative inline-flex w-3/12 sm:w-2/12 justify-center py-3 sm:py-2 px-1 border border-transparent text-xs font-medium rounded-sm text-white bg-gray-600 cursor-not-allowed"
+                    className="xs+:ml-8 group relative inline-flex w-3/12 xs+:w-2/12 justify-center py-3 xs+:py-2 px-1 border border-transparent text-xs font-medium rounded-sm text-white bg-gray-600 cursor-not-allowed"
                     disabled
                   >
                     Wait {countdown}s

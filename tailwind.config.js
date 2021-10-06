@@ -21,6 +21,9 @@ module.exports = {
       colors: {
         "coral-reef": "#C1BC9E",
       },
+      screens: {
+        "xs+": "520px",
+      },
     },
   },
   variants: {

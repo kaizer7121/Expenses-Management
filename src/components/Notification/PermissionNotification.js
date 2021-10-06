@@ -74,14 +74,14 @@ const PermissionNotification = () => {
             <div>
               <input
                 type="text"
-                className="appearance-none rounded-none relative inline-block w-9/12 px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative inline-block w-9/12 px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 xs+:text-sm"
                 placeholder="Code"
                 value={secretCode}
                 onChange={changeCodeHandler}
               />
               <button
                 onClick={submitCodeHandler}
-                className="sm:ml-8 group relative inline-flex w-3/12 sm:w-2/12 justify-center py-3 sm:py-2 px-1 border border-transparent text-xs font-medium rounded-sm text-white bg-blue-700 hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="xs+:ml-8 group relative inline-flex w-3/12 xs+:w-2/12 justify-center py-3 xs+:py-2 px-1 border border-transparent text-xs font-medium rounded-sm text-white bg-blue-700 hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Submit
               </button>
