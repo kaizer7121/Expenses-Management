@@ -19,15 +19,19 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.\
 erstand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Images of website
+## Screenshot of website
 
 ### Sign in
-
+![Sign in]https://github.com/kaizer7121/Expenses-Management/blob/master/web_img/SignIn.png
 
 ### List bill
-
+![List of bill]https://github.com/kaizer7121/Expenses-Management/blob/master/web_img/ListBill.png
 
 ### Member management
-
+![Member management]https://github.com/kaizer7121/Expenses-Management/blob/master/web_img/ManageMember.png
 
 ### Profile
+![Profile]https://github.com/kaizer7121/Expenses-Management/blob/master/web_img/Profile.png
+
+### Create Bill
+![Bill Creation]https://github.com/kaizer7121/Expenses-Management/blob/master/web_img/BillCreation.png
